@@ -1,0 +1,44 @@
+meta {
+  name: Process Image
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/ocr/process
+  body: multipart-form
+}
+
+body:multipart-form {
+  file: @file(../test-files/sample-receipt.jpg)
+  language: eng+tha
+  confidence_threshold: 0.7
+}
+
+assert {
+  res.status: eq 200
+  res.body.text: isString
+  res.body.confidence: isNumber
+}
+
+tests {
+  test("OCR should process successfully", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return extracted text", function() {
+    expect(res.body.text).to.be.a("string");
+    expect(res.body.text.length).to.be.greaterThan(0);
+  });
+
+  test("Should return confidence score", function() {
+    expect(res.body.confidence).to.be.a("number");
+    expect(res.body.confidence).to.be.at.least(0);
+    expect(res.body.confidence).to.be.at.most(1);
+  });
+
+  test("Should have processing metadata", function() {
+    expect(res.body.processing_time).to.be.a("number");
+    expect(res.body.language).to.be.a("string");
+  });
+}

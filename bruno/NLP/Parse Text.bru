@@ -1,0 +1,43 @@
+meta {
+  name: Parse Text
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/nlp/parse
+  body: json
+}
+
+body:json {
+  "text": "Coffee at Starbucks 120 baht by credit card",
+  "language": "en",
+  "use_local_only": true
+}
+
+assert {
+  res.status: eq 200
+  res.body.confidence: isNumber
+}
+
+tests {
+  test("NLP should parse successfully", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return confidence score", function() {
+    expect(res.body.confidence).to.be.a("number");
+    expect(res.body.confidence).to.be.at.least(0);
+    expect(res.body.confidence).to.be.at.most(1);
+  });
+
+  test("Should extract spending information", function() {
+    expect(res.body).to.have.property("merchant");
+    expect(res.body).to.have.property("amount");
+    expect(res.body).to.have.property("category");
+  });
+
+  test("Should have extraction details", function() {
+    expect(res.body.extraction_details).to.be.an("object");
+  });
+}

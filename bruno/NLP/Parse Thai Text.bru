@@ -1,0 +1,37 @@
+meta {
+  name: Parse Thai Text
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/nlp/parse
+  body: json
+}
+
+body:json {
+  "text": "ซื้อกาแฟที่สตาร์บัคส์ 120 บาท จ่ายด้วยบัตรเครดิต",
+  "language": "th",
+  "use_local_only": true
+}
+
+assert {
+  res.status: eq 200
+  res.body.confidence: isNumber
+}
+
+tests {
+  test("Thai NLP should parse successfully", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should handle Thai language", function() {
+    expect(res.body.extraction_details.language).to.equal("th");
+  });
+
+  test("Should extract Thai spending information", function() {
+    expect(res.body).to.have.property("merchant");
+    expect(res.body).to.have.property("amount");
+    expect(res.body).to.have.property("category");
+  });
+}

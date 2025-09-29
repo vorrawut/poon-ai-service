@@ -1,0 +1,30 @@
+meta {
+  name: Merchant Normalization
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/merchants/normalize?name=starbucks coffee co ltd
+}
+
+assert {
+  res.status: eq 200
+  res.body.original: isString
+  res.body.normalized: isString
+}
+
+tests {
+  test("Merchant normalization should succeed", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return original and normalized names", function() {
+    expect(res.body.original).to.be.a("string");
+    expect(res.body.normalized).to.be.a("string");
+  });
+
+  test("Normalized name should be cleaned", function() {
+    expect(res.body.normalized.length).to.be.greaterThan(0);
+  });
+}

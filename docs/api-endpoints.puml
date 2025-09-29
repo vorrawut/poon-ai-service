@@ -1,0 +1,203 @@
+@startuml API Endpoints
+!theme aws-orange
+title Poon AI Service - API Endpoints
+
+package "Health & Status" {
+  class "GET /health" {
+    Response: HealthStatus
+    --
+    +status: "healthy"
+    +services.ai_type: "llama4" | "openai" | "none"
+    +services.ai: "ready" | "offline" | "disabled"
+    +timestamp: ISO string
+  }
+  
+  class "GET /ai/status" {
+    Response: AIStatus
+    --
+    +ai_available: boolean
+    +ai_type: "llama4" | "openai" | "none"
+    +model: string
+    +available_models: string[]
+  }
+}
+
+package "OCR Processing" {
+  class "POST /ocr/process" {
+    Request: Multipart Form
+    --
+    +file: Image file
+    +language: "eng+tha" | "eng" | "tha"
+    +confidence_threshold: float
+    --
+    Response: OCRResult
+    +text: string
+    +confidence: float (0-1)
+    +processing_time: float
+    +bounding_boxes: BoundingBox[]
+  }
+}
+
+package "NLP Processing" {
+  class "POST /nlp/parse" {
+    Request: JSON
+    --
+    +text: string
+    +language: "en" | "th" | "auto"
+    +use_local_only: boolean
+    --
+    Response: NLPResult
+    +merchant: string | null
+    +amount: float | null
+    +category: string | null
+    +confidence: float (0-1)
+    +reasoning: string
+  }
+}
+
+package "Complete Processing" {
+  class "POST /process/receipt" {
+    Request: Multipart Form
+    --
+    +file: Image file
+    +language: "eng+tha"
+    +use_ai_fallback: boolean
+    +confidence_threshold: float
+    --
+    Response: SpendingEntry
+    +amount: float
+    +merchant: string
+    +category: string
+    +date: ISO string
+    +processing_method: string
+    +confidence: float
+  }
+  
+  class "POST /process/text" {
+    Request: JSON
+    --
+    +text: string (natural language)
+    +language: "auto" | "en" | "th"
+    +use_ai_fallback: boolean
+    +context: object | null
+    --
+    Response: SpendingEntry
+    +amount: float
+    +merchant: string
+    +category: string
+    +processing_method: string
+  }
+  
+  class "POST /process/batch" {
+    Request: JSON
+    --
+    +data: object[] (CSV/Excel rows)
+    +use_ai_enhancement: boolean
+    --
+    Response: SpendingEntry[]
+    +note: Array of processed entries
+    +background: AI enhancement
+  }
+}
+
+package "AI Analysis" {
+  class "POST /analyze/spending" {
+    Request: JSON
+    --
+    +entries: SpendingEntry[]
+    +analysis_type: "comprehensive" | "basic"
+    --
+    Response: AIAnalysis
+    +insights: AIInsight[]
+    +recommendations: AIRecommendation[]
+    +patterns: object
+    +anomalies: AIAnomaly[]
+    +confidence: float
+  }
+}
+
+package "Utilities" {
+  class "GET /categories/suggest" {
+    Request: Query Parameters
+    --
+    +merchant: string
+    +amount: float
+    +description: string
+    --
+    Response: CategorySuggestions
+    +suggestions: string[]
+  }
+
+  class "GET /merchants/normalize" {
+    Request: Query Parameters
+    --
+    +name: string
+    --
+    Response: MerchantNormalization
+    +original: string
+    +normalized: string
+  }
+}
+
+package "Data Models" {
+  class "SpendingEntry" {
+    +id: string | null
+    +amount: float
+    +merchant: string
+    +category: string
+    +subcategory: string | null
+    +description: string
+    +date: ISO string
+    +payment_method: string | null
+    +confidence: float (0-1)
+    +processing_method: string
+    +raw_text: string | null
+    +created_at: ISO string
+  }
+
+  class "AIInsight" {
+    +title: string
+    +description: string
+    +impact: "high" | "medium" | "low"
+  }
+
+  class "AIRecommendation" {
+    +action: string
+    +reason: string
+    +potential_savings: float
+  }
+
+  class "AIAnomaly" {
+    +description: string
+    +amount: float
+    +date: ISO string
+  }
+}
+
+' Define external service
+class "Llama4 Service" {
+  +AI processing
+}
+
+' Processing flow relationships
+"POST /process/receipt" --> "POST /ocr/process" : uses internally
+"POST /process/receipt" --> "POST /nlp/parse" : uses internally
+"POST /process/text" --> "POST /nlp/parse" : uses internally
+
+' AI enhancement relationships
+"POST /nlp/parse" ..> "Llama4 Service" : AI enhancement
+"POST /process/receipt" ..> "Llama4 Service" : AI enhancement
+"POST /process/text" ..> "Llama4 Service" : AI enhancement
+"POST /analyze/spending" --> "Llama4 Service" : requires AI
+
+note bottom of "Llama4 Service" : Primary AI Processing\nLocal, Free, Private
+
+' Response model relationships
+"POST /process/receipt" --> SpendingEntry : returns
+"POST /process/text" --> SpendingEntry : returns
+"POST /process/batch" --> SpendingEntry : returns array
+"POST /analyze/spending" --> AIInsight : contains
+"POST /analyze/spending" --> AIRecommendation : contains
+"POST /analyze/spending" --> AIAnomaly : contains
+
+@enduml

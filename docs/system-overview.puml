@@ -1,0 +1,68 @@
+@startuml System Overview
+!theme aws-orange
+title Poon AI Service - System Overview
+
+!define RECTANGLE class
+
+package "Frontend (React)" {
+  RECTANGLE PhotoOCRInput
+  RECTANGLE VoiceInput  
+  RECTANGLE ChatTextInput
+  RECTANGLE ManualFormInput
+  RECTANGLE FileUploadInput
+  RECTANGLE QuickTemplateInput
+}
+
+package "AI Microservice (FastAPI)" {
+  RECTANGLE "FastAPI App" as App
+  RECTANGLE "OCR Service" as OCR
+  RECTANGLE "NLP Service" as NLP
+  RECTANGLE "Llama Service" as Llama
+  RECTANGLE "AI Service (OpenAI)" as OpenAI
+  RECTANGLE "Cache Service" as Cache
+}
+
+package "External Services" {
+  RECTANGLE "Ollama (Local)" as OllamaExt
+  RECTANGLE "OpenAI API" as OpenAIAPI
+  RECTANGLE "Redis Cache" as RedisExt
+  RECTANGLE "Tesseract OCR" as TesseractExt
+}
+
+package "Main Backend (NestJS)" {
+  RECTANGLE "Spending Controller" as Controller
+  RECTANGLE "Database (PostgreSQL)" as DB
+}
+
+' Frontend to AI Service connections
+PhotoOCRInput --> App : POST /process/receipt
+VoiceInput --> App : POST /process/text
+ChatTextInput --> App : POST /process/text
+ManualFormInput --> Controller : Direct save
+FileUploadInput --> App : POST /process/batch
+QuickTemplateInput --> Controller : Direct save
+
+' AI Service internal connections
+App --> OCR : Image processing
+App --> NLP : Text parsing
+App --> Llama : AI enhancement (primary)
+App --> OpenAI : AI fallback
+App --> Cache : Result caching
+
+' External service connections
+OCR --> TesseractExt : Local OCR
+Llama --> OllamaExt : Local Llama4
+OpenAI --> OpenAIAPI : Cloud API
+Cache --> RedisExt : Cache storage
+
+' AI Service to Main Backend
+App --> Controller : Processed spending entries
+
+' Main Backend to Database
+Controller --> DB : Store spending data
+
+note right of Llama : Primary AI\n(FREE, Local)
+note right of OpenAI : Fallback AI\n(Paid, Cloud)
+note right of OllamaExt : Llama4 Model\nRunning Locally
+
+@enduml

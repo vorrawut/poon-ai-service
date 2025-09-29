@@ -1,0 +1,184 @@
+@startuml Service Architecture
+!theme aws-orange
+title Poon AI Service - Internal Architecture
+
+package "FastAPI Application" {
+  class "main.py" as Main {
+    +app: FastAPI
+    +services: Dict
+    +lifespan()
+    +health_check()
+    +get_ai_status()
+  }
+  
+  class "Settings" as Config {
+    +ollama_url: str
+    +llama_model: str
+    +use_llama: bool
+    +openai_api_key: str
+    +validate_environment()
+  }
+}
+
+package "Core Services" {
+  class "OCRService" as OCR {
+    +tesseract_available: bool
+    +extract_text()
+    +_tesseract_ocr()
+    +_openai_vision_ocr()
+    +process_receipt_ocr()
+  }
+  
+  class "NLPService" as NLP {
+    +patterns: Dict
+    +merchant_db: Dict
+    +category_keywords: Dict
+    +parse_spending_text()
+    +_extract_amount()
+    +_extract_merchant()
+    +_predict_category()
+    +suggest_categories()
+  }
+  
+  class "LlamaService" as Llama {
+    +ollama_url: str
+    +model: str
+    +_check_ollama_connection()
+    +_call_llama()
+    +enhance_nlp_result()
+    +create_spending_entry()
+    +analyze_spending_patterns()
+  }
+  
+  class "AIService" as OpenAI {
+    +client: AsyncOpenAI
+    +model: str
+    +enhance_nlp_result()
+    +create_spending_entry()
+    +analyze_spending_patterns()
+  }
+  
+  class "CacheService" as Cache {
+    +redis_client: Optional
+    +memory_cache: Dict
+    +get()
+    +set()
+    +delete()
+  }
+}
+
+package "Data Models" {
+  class "OCRResult" as OCRModel {
+    +text: str
+    +confidence: float
+    +processing_time: float
+    +method: str
+    +bounding_boxes: List
+  }
+  
+  class "NLPResult" as NLPModel {
+    +merchant: Optional[str]
+    +amount: Optional[float]
+    +category: Optional[str]
+    +confidence: float
+    +reasoning: str
+    +extraction_details: Dict
+  }
+  
+  class "SpendingEntry" as SpendingModel {
+    +amount: float
+    +merchant: str
+    +category: str
+    +date: datetime
+    +confidence: float
+    +processing_method: str
+  }
+  
+  class "AIAnalysis" as AnalysisModel {
+    +insights: List[AIInsight]
+    +recommendations: List[AIRecommendation]
+    +patterns: Dict
+    +anomalies: List[AIAnomaly]
+    +confidence: float
+  }
+}
+
+package "Utilities" {
+  class "ImageUtils" as ImgUtils {
+    +validate_image()
+    +preprocess_image()
+    +enhance_for_ocr()
+    +extract_metadata()
+  }
+  
+  class "TextUtils" as TxtUtils {
+    +clean_text()
+    +detect_language()
+    +extract_amounts()
+    +extract_dates()
+    +normalize_text()
+  }
+}
+
+package "External Integrations" {
+  class "Ollama" as OllamaExt {
+    +url: http://localhost:11434
+    +models: [llama2, llama4]
+    +generate()
+    +list_models()
+  }
+  
+  class "OpenAI API" as OpenAIAPI {
+    +chat.completions.create()
+    +vision processing
+    +gpt-4o-mini model
+  }
+  
+  class "Tesseract" as TesseractExt {
+    +image_to_string()
+    +image_to_data()
+    +languages: [eng, tha]
+  }
+  
+  class "Redis" as RedisExt {
+    +get()
+    +set()
+    +expire()
+  }
+}
+
+' Main application relationships
+Main --> Config : uses
+Main --> OCR : manages
+Main --> NLP : manages
+Main --> Llama : manages (primary)
+Main --> OpenAI : manages (fallback)
+Main --> Cache : manages
+
+' Service dependencies
+OCR --> ImgUtils : uses
+OCR --> TesseractExt : integrates
+OCR --> OpenAIAPI : fallback
+
+NLP --> TxtUtils : uses
+NLP --> NLPModel : returns
+
+Llama --> OllamaExt : integrates
+Llama --> NLPModel : enhances
+
+OpenAI --> OpenAIAPI : integrates
+OpenAI --> NLPModel : enhances
+
+Cache --> RedisExt : primary storage
+
+' Data flow
+OCR --> OCRModel : produces
+NLP --> NLPModel : produces
+Llama --> SpendingModel : creates
+Llama --> AnalysisModel : generates
+
+note top of Llama : Primary AI Service\n(Local, Free, Private)
+note top of OpenAI : Fallback AI Service\n(Cloud, Paid)
+note top of OllamaExt : Llama4 Runtime\n(Local Installation)
+
+@enduml

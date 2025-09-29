@@ -1,0 +1,56 @@
+meta {
+  name: Batch Processing
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/process/batch
+  body: json
+}
+
+body:json {
+  "data": [
+    {
+      "description": "Coffee at Starbucks",
+      "amount": "120.00",
+      "date": "2024-09-29",
+      "category": "Food & Dining"
+    },
+    {
+      "merchant": "7-Eleven",
+      "total": "45.50",
+      "date": "2024-09-28",
+      "payment": "Cash"
+    },
+    {
+      "text": "Lunch 300 baht at restaurant"
+    }
+  ],
+  "use_ai_enhancement": false
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}
+
+tests {
+  test("Batch processing should succeed", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return array of processed entries", function() {
+    expect(res.body).to.be.an("array");
+    expect(res.body.length).to.be.greaterThan(0);
+  });
+
+  test("Each entry should have required fields", function() {
+    res.body.forEach(entry => {
+      expect(entry).to.have.property("amount");
+      expect(entry).to.have.property("merchant");
+      expect(entry).to.have.property("category");
+      expect(entry).to.have.property("processing_method");
+    });
+  });
+}

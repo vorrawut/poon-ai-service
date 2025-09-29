@@ -1,0 +1,169 @@
+@startuml Frontend Integration
+!theme aws-orange
+title Frontend Integration with AI Service
+
+package "React Frontend Components" {
+  class "AddSpendingModal" {
+    +isOpen: boolean
+    +onClose: () => void
+    +onSave: (entry) => Promise<void>
+    +defaultMethod: InputMethod
+    --
+    Renders input method selection
+    Handles save status and animations
+  }
+  
+  class "PhotoOCRInput" {
+    +onSave: (entry) => void
+    +onProcessingUpdate: (msg) => void
+    --
+    +handleFileUpload()
+    +processImageWithOCR()
+    +handleSave()
+    --
+    API: POST /process/receipt
+  }
+  
+  class "VoiceInput" {
+    +onSave: (entry) => void
+    +onProcessingUpdate: (msg) => void
+    --
+    +startRecording()
+    +stopRecording()
+    +processVoiceText()
+    --
+    API: POST /process/text
+  }
+  
+  class "ChatTextInput" {
+    +onSave: (entry) => void
+    +onProcessingUpdate: (msg) => void
+    --
+    +handleTextSubmit()
+    +parseNaturalLanguage()
+    --
+    API: POST /process/text
+  }
+  
+  class "FileUploadInput" {
+    +onSave: (entry) => void
+    +onProcessingUpdate: (msg) => void
+    --
+    +handleFileUpload()
+    +parseFileData()
+    +processBatch()
+    --
+    API: POST /process/batch
+  }
+  
+  class "ManualFormInput" {
+    +onSave: (entry) => void
+    +onProcessingUpdate: (msg) => void
+    --
+    +handleFormSubmit()
+    +validateInput()
+    --
+    Direct save (no AI processing)
+  }
+  
+  class "QuickTemplateInput" {
+    +onSave: (entry) => void
+    +onProcessingUpdate: (msg) => void
+    --
+    +handleTemplateSelect()
+    +customizeAmount()
+    --
+    Direct save (no AI processing)
+  }
+}
+
+package "AI Service Endpoints" {
+  class "Receipt Processing" as ReceiptAPI {
+    POST /process/receipt
+    --
+    Input: Image file
+    Output: SpendingEntry
+    --
+    OCR + NLP + AI Pipeline
+  }
+  
+  class "Text Processing" as TextAPI {
+    POST /process/text
+    --
+    Input: Natural language text
+    Output: SpendingEntry
+    --
+    NLP + AI Enhancement
+  }
+  
+  class "Batch Processing" as BatchAPI {
+    POST /process/batch
+    --
+    Input: Array of data objects
+    Output: SpendingEntry[]
+    --
+    Bulk processing with AI
+  }
+  
+  class "Health Check" as HealthAPI {
+    GET /health
+    --
+    Output: Service status
+    --
+    AI service availability
+  }
+}
+
+package "Processing States" {
+  state "Idle" as Idle
+  state "Processing" as Processing
+  state "Success" as Success
+  state "Error" as Error
+  
+  Idle --> Processing : User action
+  Processing --> Success : API success
+  Processing --> Error : API error
+  Success --> Idle : Reset
+  Error --> Idle : Retry
+}
+
+' Component to API relationships
+PhotoOCRInput --> ReceiptAPI : Image upload
+VoiceInput --> TextAPI : Voice transcription
+ChatTextInput --> TextAPI : Natural language
+FileUploadInput --> BatchAPI : File data
+ManualFormInput ..> "Direct Save" : Bypass AI
+QuickTemplateInput ..> "Direct Save" : Bypass AI
+
+' Modal orchestration
+AddSpendingModal --> PhotoOCRInput : contains
+AddSpendingModal --> VoiceInput : contains
+AddSpendingModal --> ChatTextInput : contains
+AddSpendingModal --> FileUploadInput : contains
+AddSpendingModal --> ManualFormInput : contains
+AddSpendingModal --> QuickTemplateInput : contains
+
+' API response flow
+ReceiptAPI --> PhotoOCRInput : SpendingEntry
+TextAPI --> VoiceInput : SpendingEntry
+TextAPI --> ChatTextInput : SpendingEntry
+BatchAPI --> FileUploadInput : SpendingEntry[]
+
+' State management
+PhotoOCRInput --> Processing : API call
+VoiceInput --> Processing : API call
+ChatTextInput --> Processing : API call
+FileUploadInput --> Processing : API call
+
+note top of ReceiptAPI : Primary processing\nfor photo receipts
+note top of TextAPI : Handles voice & chat\nnatural language input
+note top of BatchAPI : Bulk processing\nfor file imports
+
+note bottom of "Direct Save" : Manual & template inputs\nbypass AI processing\nfor immediate save
+
+' Frontend error handling
+Processing --> Error : Network error\nAPI timeout\nParsing failure
+Error --> Processing : Retry mechanism
+Success --> AddSpendingModal : Close modal\nShow success animation
+
+@enduml

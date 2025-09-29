@@ -1,0 +1,30 @@
+meta {
+  name: AI Status
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/ai/status
+}
+
+assert {
+  res.status: eq 200
+  res.body.ai_available: eq true
+}
+
+tests {
+  test("Response should be successful", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should indicate AI availability", function() {
+    expect(res.body).to.have.property("ai_available");
+    expect(res.body).to.have.property("ai_type");
+  });
+
+  test("AI type should be llama4 or openai", function() {
+    const validTypes = ["llama4", "openai", "none"];
+    expect(validTypes).to.include(res.body.ai_type);
+  });
+}

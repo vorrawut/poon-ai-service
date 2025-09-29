@@ -1,0 +1,93 @@
+@startuml Processing Flow
+!theme aws-orange
+title Poon AI Service - Complete Processing Flow
+
+participant "Frontend" as FE
+participant "FastAPI App" as API
+participant "OCR Service" as OCR
+participant "NLP Service" as NLP
+participant "Llama Service" as Llama
+participant "OpenAI Service" as OpenAI
+participant "Cache" as Cache
+participant "Ollama" as OllamaExt
+participant "Tesseract" as Tesseract
+
+== Photo Receipt Processing ==
+FE -> API: POST /process/receipt\n(image file)
+API -> Cache: Check image cache
+alt Cache Hit
+    Cache -> API: Return cached OCR result
+else Cache Miss
+    API -> OCR: Process image
+    OCR -> Tesseract: Extract text (local)
+    Tesseract -> OCR: Raw text + confidence
+    
+    alt OCR confidence < threshold
+        OCR -> OpenAI: Vision API fallback
+        OpenAI -> OCR: Enhanced text
+    end
+    
+    OCR -> API: OCR result
+    API -> Cache: Store OCR result
+end
+
+API -> NLP: Parse extracted text
+NLP -> NLP: Pattern matching\n(merchant, amount, category)
+NLP -> API: NLP result + confidence
+
+alt NLP confidence < threshold
+    API -> Llama: Enhance with Llama4
+    Llama -> OllamaExt: Generate enhancement
+    OllamaExt -> Llama: Enhanced data
+    Llama -> API: Enhanced NLP result
+    
+    alt Llama unavailable
+        API -> OpenAI: Fallback to GPT
+        OpenAI -> API: Enhanced result
+    end
+end
+
+API -> API: Create SpendingEntry
+API -> FE: Complete spending entry
+
+== Voice/Chat Text Processing ==
+FE -> API: POST /process/text\n(natural language)
+API -> NLP: Parse text directly
+NLP -> API: NLP result + confidence
+
+alt Low confidence OR complex text
+    API -> Llama: Enhance understanding
+    Llama -> OllamaExt: Process natural language
+    OllamaExt -> Llama: Structured data
+    Llama -> API: Enhanced result
+end
+
+API -> FE: Processed spending entry
+
+== Batch File Processing ==
+FE -> API: POST /process/batch\n(CSV/Excel data)
+API -> API: Parse file format
+loop For each row
+    API -> NLP: Process row data
+    NLP -> API: Structured entry
+    
+    alt AI enhancement enabled
+        API -> Llama: Enhance entry
+        Llama -> API: Enhanced entry
+    end
+end
+API -> FE: Array of processed entries
+
+== AI Analysis ==
+FE -> API: POST /analyze/spending\n(spending entries)
+API -> Llama: Analyze patterns
+Llama -> OllamaExt: Generate insights
+OllamaExt -> Llama: Analysis results
+Llama -> API: Insights + recommendations
+API -> FE: Complete analysis
+
+note over Llama, OllamaExt: Primary AI Processing\n(FREE, Local, Private)
+note over OpenAI: Fallback Only\n(Paid, Cloud)
+note over Cache: Performance Optimization\n(Redis or Memory)
+
+@enduml

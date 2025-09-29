@@ -1,0 +1,47 @@
+meta {
+  name: Complete Receipt Processing
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/process/receipt
+  body: multipart-form
+}
+
+body:multipart-form {
+  file: @file(../test-files/sample-receipt.jpg)
+  language: eng+tha
+  use_ai_fallback: true
+  confidence_threshold: 0.8
+}
+
+assert {
+  res.status: eq 200
+  res.body.amount: isNumber
+  res.body.merchant: isString
+  res.body.category: isString
+}
+
+tests {
+  test("Complete processing should succeed", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return complete spending entry", function() {
+    expect(res.body.amount).to.be.a("number");
+    expect(res.body.merchant).to.be.a("string");
+    expect(res.body.category).to.be.a("string");
+    expect(res.body.date).to.be.a("string");
+  });
+
+  test("Should have high confidence", function() {
+    expect(res.body.confidence).to.be.a("number");
+    expect(res.body.confidence).to.be.at.least(0.5);
+  });
+
+  test("Should indicate processing method", function() {
+    expect(res.body.processing_method).to.be.a("string");
+    expect(res.body.processing_method).to.match(/ocr\+nlp/);
+  });
+}

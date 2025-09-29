@@ -1,0 +1,33 @@
+meta {
+  name: Health Check
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq healthy
+  res.body.services.ocr: eq ready
+  res.body.services.nlp: eq ready
+}
+
+tests {
+  test("Response should be healthy", function() {
+    expect(res.status).to.equal(200);
+    expect(res.body.status).to.equal("healthy");
+  });
+
+  test("All core services should be ready", function() {
+    expect(res.body.services.ocr).to.equal("ready");
+    expect(res.body.services.nlp).to.equal("ready");
+    expect(res.body.services.cache).to.equal("ready");
+  });
+
+  test("Should have timestamp", function() {
+    expect(res.body.timestamp).to.be.a("string");
+  });
+}

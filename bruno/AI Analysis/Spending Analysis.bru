@@ -1,0 +1,90 @@
+meta {
+  name: Spending Analysis
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/analyze/spending
+  body: json
+}
+
+body:json {
+  "entries": [
+    {
+      "id": "1",
+      "amount": 120.0,
+      "merchant": "Starbucks Coffee",
+      "category": "Food & Dining",
+      "subcategory": "Coffee",
+      "description": "Morning coffee",
+      "date": "2024-09-29T08:30:00Z",
+      "payment_method": "Credit Card",
+      "confidence": 0.95,
+      "processing_method": "ocr+nlp",
+      "created_at": "2024-09-29T08:30:00Z"
+    },
+    {
+      "id": "2", 
+      "amount": 350.0,
+      "merchant": "McDonald's",
+      "category": "Food & Dining",
+      "subcategory": "Fast Food",
+      "description": "Lunch meal",
+      "date": "2024-09-29T12:15:00Z",
+      "payment_method": "Cash",
+      "confidence": 0.88,
+      "processing_method": "nlp",
+      "created_at": "2024-09-29T12:15:00Z"
+    },
+    {
+      "id": "3",
+      "amount": 1200.0,
+      "merchant": "Tesco Lotus",
+      "category": "Groceries",
+      "subcategory": "Supermarket",
+      "description": "Weekly groceries",
+      "date": "2024-09-28T18:45:00Z",
+      "payment_method": "Credit Card",
+      "confidence": 0.92,
+      "processing_method": "manual",
+      "created_at": "2024-09-28T18:45:00Z"
+    }
+  ],
+  "analysis_type": "comprehensive"
+}
+
+assert {
+  res.status: eq 200
+  res.body.insights: isArray
+  res.body.recommendations: isArray
+}
+
+tests {
+  test("Analysis should succeed", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return insights", function() {
+    expect(res.body.insights).to.be.an("array");
+    expect(res.body.insights.length).to.be.greaterThan(0);
+  });
+
+  test("Should return recommendations", function() {
+    expect(res.body.recommendations).to.be.an("array");
+  });
+
+  test("Should have analysis metadata", function() {
+    expect(res.body.total_entries).to.be.a("number");
+    expect(res.body.analysis_type).to.equal("comprehensive");
+    expect(res.body.confidence).to.be.a("number");
+  });
+
+  test("Insights should have proper structure", function() {
+    res.body.insights.forEach(insight => {
+      expect(insight).to.have.property("title");
+      expect(insight).to.have.property("description");
+      expect(insight).to.have.property("impact");
+    });
+  });
+}

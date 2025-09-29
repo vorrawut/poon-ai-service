@@ -1,0 +1,42 @@
+meta {
+  name: Text Processing
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/process/text
+  body: json
+}
+
+body:json {
+  "text": "Bought lunch at McDonald's for 250 baht, paid with cash yesterday",
+  "language": "auto",
+  "use_ai_fallback": true,
+  "context": {
+    "source": "voice_input",
+    "user_location": "Bangkok, Thailand"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.amount: isNumber
+  res.body.merchant: isString
+}
+
+tests {
+  test("Text processing should succeed", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should extract spending details", function() {
+    expect(res.body.amount).to.be.a("number");
+    expect(res.body.merchant).to.be.a("string");
+    expect(res.body.category).to.be.a("string");
+  });
+
+  test("Should handle natural language", function() {
+    expect(res.body.processing_method).to.match(/nlp/);
+  });
+}

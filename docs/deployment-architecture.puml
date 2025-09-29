@@ -1,0 +1,144 @@
+@startuml Deployment Architecture
+!theme aws-orange
+title Poon AI Service - Deployment Architecture
+
+package "Development Environment" {
+  node "Developer Machine" {
+    component "React Frontend" as ReactDev {
+      +Port: 3000
+    }
+
+    component "AI Service" as AIDev {
+      +Port: 8001
+    }
+
+    component "Ollama" as OllamaDev {
+      +Port: 11434
+    }
+    note bottom of OllamaDev : Llama4 Model\nLocal Installation
+
+    component "Redis" as RedisDev {
+      +Port: 6379
+    }
+  }
+
+  ReactDev --> AIDev : HTTP (3000→8001)
+  AIDev --> OllamaDev : HTTP (8001→11434)
+  AIDev --> RedisDev : TCP (8001→6379)
+}
+
+package "Production Environment" {
+  node "Frontend Server" {
+    component "React App" as ReactProd {
+      +Port: 443
+    }
+
+    component "Nginx" as NginxFE {
+      +Port: 80/443
+    }
+  }
+
+  node "AI Service Cluster" {
+    component "AI Service 1" as AI1 {
+      +Port: 8001
+    }
+    component "AI Service 2" as AI2 {
+      +Port: 8001
+    }
+    component "Load Balancer" as LB {
+      +Port: 80/443
+    }
+  }
+
+  node "AI Infrastructure" {
+    component "Ollama Cluster" as OllamaProd {
+      +Port: 11434
+    }
+    note bottom of OllamaProd : Llama4 Models\nGPU-accelerated
+
+    component "Redis Cluster" as RedisProd {
+      +Port: 6379
+    }
+  }
+
+  node "Main Backend" {
+    component "NestJS API" as NestJS {
+      +Port: 3001
+    }
+    component "PostgreSQL" as DB {
+      +Port: 5432
+    }
+  }
+
+  ' Connections
+  NginxFE --> ReactProd : HTTPS (443)
+  ReactProd --> LB : HTTPS (443)
+  LB --> AI1 : HTTP (8001)
+  LB --> AI2 : HTTP (8001)
+  AI1 --> OllamaProd : HTTP (11434)
+  AI2 --> OllamaProd : HTTP (11434)
+  AI1 --> RedisProd : TCP (6379)
+  AI2 --> RedisProd : TCP (6379)
+  ReactProd --> NestJS : HTTPS (3001)
+  NestJS --> DB : TCP (5432)
+}
+
+package "Cloud Services" {
+  cloud "OpenAI API" as OpenAICloud
+  note bottom of OpenAICloud : Fallback AI\nWhen Llama unavailable
+
+  cloud "CDN" as CDN
+  note bottom of CDN : Static assets\nGlobal distribution
+}
+
+' Cloud connections
+AI1 ..> OpenAICloud : HTTPS (fallback)
+AI2 ..> OpenAICloud : HTTPS (fallback)
+ReactProd ..> CDN : Static assets
+
+package "Monitoring & Logging" {
+  component "Prometheus" as Metrics {
+    +Port: 9090
+  }
+  component "Grafana" as Dashboard {
+    +Port: 3000
+  }
+  component "ELK Stack" as Logging {
+    +Port: 5601
+  }
+}
+
+' Monitoring connections
+AI1 --> Metrics : Metrics (9090)
+AI2 --> Metrics : Metrics (9090)
+Metrics --> Dashboard : Data
+AI1 --> Logging : Logs (5601)
+AI2 --> Logging : Logs (5601)
+
+package "Deployment Tools" {
+  component "Docker" as DockerTool
+  note bottom of DockerTool : Containerization
+
+  component "Kubernetes" as K8s
+  note bottom of K8s : Orchestration
+
+  component "GitHub Actions" as CI
+  note bottom of CI : CI/CD Pipeline
+}
+
+' Deployment flow
+CI --> DockerTool : Build images
+DockerTool --> K8s : Deploy containers
+K8s --> AI1 : Manage
+K8s --> AI2 : Manage
+
+note top of "Development Environment" : Local development\nwith hot reload
+note top of "Production Environment" : Scalable, highly available\nproduction deployment
+note top of "AI Infrastructure" : GPU-optimized\nfor Llama4 performance
+
+' Scaling notes
+note right of LB : Auto-scaling based on\nCPU and memory usage
+note right of OllamaProd : GPU instances for\nfaster AI processing
+note right of RedisProd : High availability\nwith replication
+
+@enduml

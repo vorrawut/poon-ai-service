@@ -1,0 +1,31 @@
+meta {
+  name: Category Suggestions
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/categories/suggest?merchant=Starbucks&amount=120&description=morning coffee
+}
+
+assert {
+  res.status: eq 200
+  res.body.suggestions: isArray
+}
+
+tests {
+  test("Category suggestions should succeed", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("Should return suggestion array", function() {
+    expect(res.body.suggestions).to.be.an("array");
+    expect(res.body.suggestions.length).to.be.greaterThan(0);
+  });
+
+  test("Suggestions should be strings", function() {
+    res.body.suggestions.forEach(suggestion => {
+      expect(suggestion).to.be.a("string");
+    });
+  });
+}
