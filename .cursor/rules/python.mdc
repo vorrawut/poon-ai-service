@@ -1,0 +1,209 @@
+---
+alwaysApply: true
+---
+🐍 Python Microservice Development Rules & Project Structure
+🏗️ Directory Layout (Service-Level)
+
+Each service is self-contained but follows the same layout:
+
+service_name/
+├── src/
+│   ├── service_name/            # Main application package
+│   │   ├── api/                 # FastAPI/Flask/Django views/controllers
+│   │   ├── models/              # Pydantic schemas & ORM entities
+│   │   ├── services/            # Business logic (pure functions if possible)
+│   │   ├── repositories/        # Data access (DB, cache, external services)
+│   │   ├── events/              # Kafka/NATS/PubSub consumers & producers
+│   │   ├── core/                # Infra: db, cache, auth, config, errors
+│   │   ├── common/              # Shared utils (logging, middleware)
+│   │   └── __init__.py
+│   └── main.py                  # Service entrypoint
+├── tests/                       # Unit & integration tests
+│   ├── conftest.py
+│   └── features/
+├── bruno/                       # Bruno API collections for this service
+│   ├── collections/
+│   └── environments/
+├── docs/                        # Documentation
+│   ├── puml/                   # PlantUML architecture & sequence diagrams
+│   └── openapi.json             # Exported OpenAPI spec (must be synced)
+├── scripts/                     # DevOps & helper scripts
+├── Dockerfile                   # Container definition
+├── pyproject.toml               # Build & dependency config
+├── requirements.txt             # Pinned deps (if lock needed)
+└── README.md
+
+
+🔑 Rules:
+
+Each service owns its data & APIs (no cross-service DB calls).
+
+Bruno tests (/bruno) must be updated with every API change.
+
+Architecture diagrams (/docs/puml) must reflect service-level flows.
+
+Services must stay independent (deployable, testable, observable on their own).
+
+📦 Code Structure (Inside Each Service)
+1. api/
+
+Defines request/response contracts (FastAPI routes, Flask blueprints, etc.)
+
+Input validation via Pydantic
+
+Converts transport → domain model
+
+2. models/
+
+Domain entities & schemas
+
+SQLAlchemy/Pydantic models only
+
+Rule: No business logic here
+
+3. services/
+
+Pure business logic
+
+Calls repositories/events, orchestrates flows
+
+Unit tested in isolation
+
+4. repositories/
+
+DB & cache access, external service clients
+
+Each repository handles a single external dependency
+
+Rule: No business logic inside repositories
+
+5. events/
+
+Kafka/PubSub/NATS producers & consumers
+
+Event schema defined here
+
+Tests must validate serialization
+
+6. core/
+
+Infrastructure: config, logging, DB init, error handling
+
+Rule: No domain-specific code here
+
+7. common/
+
+Shared helpers within the service (e.g. response formatter, retry utils)
+
+Rule: Never depend on other services’ common/
+
+🧪 Testing Strategy
+1. Unit Tests (/tests/features/)
+
+Mirror src/service_name structure
+
+Test services, repositories, events in isolation
+
+Mocks for external dependencies
+
+2. Integration Tests
+
+Spin up DB/cache locally with Docker (via pytest fixtures)
+
+Cover repository + API contracts
+
+3. API Tests (Bruno)
+
+Live in /bruno
+
+Required for all endpoints before merge
+
+Must be updated when API changes
+
+4. Contract Tests
+
+Ensure producer/consumer events follow agreed schema
+
+Validate against shared schema repo (if exists)
+
+📋 Build & Quality Rules
+
+Code style → ruff (or black if you prefer formatting only)
+
+Type checking → mypy (mandatory for services & models)
+
+Linting → fail CI on errors
+
+Tests → pytest --cov must pass before merge
+
+API contracts → update Bruno & export OpenAPI spec to /docs
+
+🚀 CI/CD Workflow (Mandatory Checks)
+
+Pre-commit hooks
+
+Run ruff, mypy, and pytest -q
+
+Block commit if failed
+
+CI pipeline
+
+Install deps (poetry install or pip)
+
+Run unit + integration tests
+
+Validate Bruno collections against local service
+
+Export OpenAPI spec & validate docs consistency
+
+CD pipeline
+
+Build & push Docker image
+
+Run smoke tests (health check, key endpoints)
+
+Deploy via Helm/K8s
+
+🔒 Security & Observability
+
+Secrets → env vars only (use Vault or Secret Manager in prod)
+
+Auth → implement in core/middleware (JWT/OAuth2)
+
+Logging → JSON structured logs (logfmt)
+
+Tracing → OpenTelemetry instrumentation required
+
+Metrics → Prometheus/Grafana exporters (per service)
+
+Error handling → centralized in core/errors
+
+📁 Example Microservice Layout
+payments-service/
+├── src/payments/
+│   ├── api/             # FastAPI routes: POST /charge, GET /status
+│   ├── models/          # ChargeRequest, ChargeResponse, PaymentRecord
+│   ├── services/        # PaymentService (business rules)
+│   ├── repositories/    # PaymentRepo (DB), GatewayClient (external API)
+│   ├── events/          # Kafka consumers/producers
+│   ├── core/            # db.py, config.py, errors.py, logging.py
+│   ├── common/          # small helpers
+│   └── __init__.py
+├── tests/               # pytest unit & integration
+├── bruno/               # Bruno tests for /charge & /status
+├── docs/puml/           # Sequence diagrams for payment flows
+├── Dockerfile
+└── pyproject.toml
+
+
+⚡ This setup reflects best practices for Python microservices:
+
+Clear service boundaries
+
+Clean architecture separation (api → service → repository → infra)
+
+Testing discipline (unit + integration + Bruno + contracts)
+
+Observability & CI/CD baked in
+
+Docs & API tests required for every change

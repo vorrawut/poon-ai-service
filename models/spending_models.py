@@ -123,6 +123,20 @@ class AIAnomaly(BaseModel):
     amount: float
     date: str
 
+class TextParsingRequest(BaseModel):
+    """Request for text parsing"""
+    text: str = Field(..., description="Text to parse")
+    language: Optional[str] = Field(default="en", description="Language code")
+    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context")
+
+class TextParsingResponse(BaseModel):
+    """Response from text parsing"""
+    success: bool = Field(..., description="Whether parsing was successful")
+    spending_entry: Optional[SpendingEntry] = Field(default=None, description="Parsed spending entry")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Parsing confidence")
+    raw_analysis: Optional[Dict[str, Any]] = Field(default=None, description="Raw analysis data")
+    errors: Optional[List[str]] = Field(default=None, description="Error messages if any")
+
 class AIAnalysis(BaseModel):
     """AI spending analysis result"""
     total_entries: int

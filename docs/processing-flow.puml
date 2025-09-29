@@ -6,7 +6,7 @@ participant "Frontend" as FE
 participant "FastAPI App" as API
 participant "OCR Service" as OCR
 participant "NLP Service" as NLP
-participant "Llama Service" as Llama
+participant "Enhanced Llama Service" as Llama
 participant "OpenAI Service" as OpenAI
 participant "Cache" as Cache
 participant "Ollama" as OllamaExt
@@ -36,7 +36,7 @@ NLP -> NLP: Pattern matching\n(merchant, amount, category)
 NLP -> API: NLP result + confidence
 
 alt NLP confidence < threshold
-    API -> Llama: Enhance with Llama4
+    API -> Llama: Enhance with Enhanced Llama4
     Llama -> OllamaExt: Generate enhancement
     OllamaExt -> Llama: Enhanced data
     Llama -> API: Enhanced NLP result
@@ -64,6 +64,14 @@ end
 
 API -> FE: Processed spending entry
 
+== Direct Llama4 Parsing ==
+FE -> API: POST /llama/parse\n(complex natural language)
+API -> Llama: Direct Llama4 parsing
+Llama -> OllamaExt: Advanced text understanding
+OllamaExt -> Llama: High-accuracy structured data
+Llama -> API: High-confidence NLP result
+API -> FE: Precise spending data
+
 == Batch File Processing ==
 FE -> API: POST /process/batch\n(CSV/Excel data)
 API -> API: Parse file format
@@ -86,7 +94,7 @@ OllamaExt -> Llama: Analysis results
 Llama -> API: Insights + recommendations
 API -> FE: Complete analysis
 
-note over Llama, OllamaExt: Primary AI Processing\n(FREE, Local, Private)
+note over Llama, OllamaExt: Enhanced Llama4 Processing\n(FREE, Local, Private, High-Accuracy)
 note over OpenAI: Fallback Only\n(Paid, Cloud)
 note over Cache: Performance Optimization\n(Redis or Memory)
 

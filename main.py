@@ -39,6 +39,7 @@ class SpendingAnalysisRequest(BaseModel):
 from services.ocr_service import OCRService
 from services.nlp_service import NLPService
 from services.cache_service import CacheService
+from services.database_service import database_service
 from models.spending_models import SpendingEntry, OCRResult, NLPResult, AIAnalysis
 from utils.image_utils import preprocess_image, validate_image
 from utils.text_utils import clean_text, detect_language
@@ -46,10 +47,10 @@ from config.settings import get_settings
 
 # Import AI services conditionally
 try:
-    from services.llama_service import LlamaService
+    from services.llama_service_enhanced import EnhancedLlamaService
     LLAMA_SERVICE_AVAILABLE = True
 except ImportError:
-    LlamaService = None
+    EnhancedLlamaService = None
     LLAMA_SERVICE_AVAILABLE = False
 
 try:
@@ -75,13 +76,17 @@ async def lifespan(app: FastAPI):
     services['cache'] = CacheService(settings.redis_url)
     services['ocr'] = OCRService(settings)
     services['nlp'] = NLPService(settings)
+    services['database'] = database_service
+    
+    # Initialize database
+    await database_service.initialize()
     
     # Initialize AI services (prioritize Llama4)
     services['ai'] = None
     
-    if LLAMA_SERVICE_AVAILABLE and settings.use_llama:
-        services['ai'] = LlamaService(settings)
-        logger.info("🦙 Primary AI service: Llama4 via Ollama")
+    if LLAMA_SERVICE_AVAILABLE and getattr(settings, 'use_llama', True):
+        services['ai'] = EnhancedLlamaService(settings)
+        logger.info("🦙 Primary AI service: Enhanced Llama4 via Ollama")
     elif OPENAI_SERVICE_AVAILABLE and settings.openai_api_key:
         services['ai'] = AIService(settings)
         logger.info("🤖 Fallback AI service: OpenAI GPT")
@@ -93,6 +98,7 @@ async def lifespan(app: FastAPI):
     
     # Cleanup
     await services['cache'].close()
+    await services['database'].close()
     logger.info("🔄 AI Microservice shutdown complete")
 
 app = FastAPI(
@@ -119,8 +125,8 @@ async def health_check():
     ai_type = "none"
     
     if services['ai']:
-        if isinstance(services['ai'], LlamaService):
-            ai_type = "llama4"
+        if isinstance(services['ai'], EnhancedLlamaService):
+            ai_type = "enhanced_llama4"
             # Check if Ollama is actually running
             try:
                 if hasattr(services['ai'], '_check_ollama_connection'):
@@ -158,10 +164,10 @@ async def get_ai_status():
     
     ai_info = {
         "ai_available": True,
-        "ai_type": "llama4" if isinstance(services['ai'], LlamaService) else "openai"
+        "ai_type": "enhanced_llama4" if isinstance(services['ai'], EnhancedLlamaService) else "openai"
     }
     
-    if isinstance(services['ai'], LlamaService):
+    if isinstance(services['ai'], EnhancedLlamaService):
         try:
             model_info = await services['ai'].get_model_info()
             ai_info.update(model_info)
@@ -313,6 +319,33 @@ async def process_receipt_complete(
     except Exception as e:
         logger.error(f"❌ Complete receipt processing failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Receipt processing failed: {str(e)}")
+
+# Llama4 Direct Text Processing
+@app.post("/llama/parse", response_model=NLPResult)
+async def parse_with_llama(request: TextProcessingRequest):
+    """
+    Parse spending text directly with Llama4 (bypassing local NLP)
+    For high-accuracy parsing when local NLP is insufficient
+    """
+    try:
+        logger.info("🦙 Direct Llama4 parsing requested...")
+        
+        if not services['ai'] or not isinstance(services['ai'], EnhancedLlamaService):
+            raise HTTPException(status_code=503, detail="Enhanced Llama4 service not available")
+        
+        llama_service = services['ai']
+        result = await llama_service.parse_spending_text(
+            request.text, 
+            request.language or "en", 
+            request.context
+        )
+        
+        logger.info(f"✅ Direct Llama4 parsing completed with {result.confidence:.2f} confidence")
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ Direct Llama4 parsing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Llama4 parsing failed: {str(e)}")
 
 # Voice/Chat Text Processing
 @app.post("/process/text", response_model=SpendingEntry)

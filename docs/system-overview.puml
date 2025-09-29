@@ -2,42 +2,40 @@
 !theme aws-orange
 title Poon AI Service - System Overview
 
-!define RECTANGLE class
-
 package "Frontend (React)" {
-  RECTANGLE PhotoOCRInput
-  RECTANGLE VoiceInput  
-  RECTANGLE ChatTextInput
-  RECTANGLE ManualFormInput
-  RECTANGLE FileUploadInput
-  RECTANGLE QuickTemplateInput
+  class PhotoOCRInput
+  class VoiceInput  
+  class ChatTextInput
+  class ManualFormInput
+  class FileUploadInput
+  class QuickTemplateInput
 }
 
 package "AI Microservice (FastAPI)" {
-  RECTANGLE "FastAPI App" as App
-  RECTANGLE "OCR Service" as OCR
-  RECTANGLE "NLP Service" as NLP
-  RECTANGLE "Llama Service" as Llama
-  RECTANGLE "AI Service (OpenAI)" as OpenAI
-  RECTANGLE "Cache Service" as Cache
+  class "FastAPI App" as App
+  class "OCR Service" as OCR
+  class "NLP Service" as NLP
+  class "Enhanced Llama Service" as Llama
+  class "AI Service (OpenAI)" as OpenAI
+  class "Cache Service" as Cache
 }
 
 package "External Services" {
-  RECTANGLE "Ollama (Local)" as OllamaExt
-  RECTANGLE "OpenAI API" as OpenAIAPI
-  RECTANGLE "Redis Cache" as RedisExt
-  RECTANGLE "Tesseract OCR" as TesseractExt
+  class "Ollama (Local)" as OllamaExt
+  class "OpenAI API" as OpenAIAPI
+  class "Redis Cache" as RedisExt
+  class "Tesseract OCR" as TesseractExt
 }
 
 package "Main Backend (NestJS)" {
-  RECTANGLE "Spending Controller" as Controller
-  RECTANGLE "Database (PostgreSQL)" as DB
+  class "Spending Controller" as Controller
+  class "Database (PostgreSQL)" as DB
 }
 
 ' Frontend to AI Service connections
 PhotoOCRInput --> App : POST /process/receipt
 VoiceInput --> App : POST /process/text
-ChatTextInput --> App : POST /process/text
+ChatTextInput --> App : POST /llama/parse
 ManualFormInput --> Controller : Direct save
 FileUploadInput --> App : POST /process/batch
 QuickTemplateInput --> Controller : Direct save
@@ -61,8 +59,8 @@ App --> Controller : Processed spending entries
 ' Main Backend to Database
 Controller --> DB : Store spending data
 
-note right of Llama : Primary AI\n(FREE, Local)
+note right of Llama : Enhanced Llama4\n(FREE, Local, Private)
 note right of OpenAI : Fallback AI\n(Paid, Cloud)
-note right of OllamaExt : Llama4 Model\nRunning Locally
+note right of OllamaExt : Llama 3.2 3B Model\nRunning Locally
 
 @enduml
