@@ -1,0 +1,58 @@
+# Docker Compose for AI Service with Tesseract OCR
+version: "3.8"
+
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.tesseract
+      target: development
+    ports:
+      - "8001:8001"
+    environment:
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - DATABASE_URL=sqlite:///./spending.db
+      - OLLAMA_URL=http://ollama:11434
+      - LLAMA_MODEL=llama3.2:3b
+      - TESSERACT_PATH=/usr/bin/tesseract
+      - TESSERACT_LANGUAGES=eng+tha
+    volumes:
+      - .:/app
+      - tesseract-cache:/app/.tesseract-cache
+    depends_on:
+      - ollama
+    networks:
+      - ai-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    networks:
+      - ai-network
+    command: ["ollama", "serve"]
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ai-network
+    command: redis-server --appendonly yes
+
+volumes:
+  ollama-data:
+  redis-data:
+  tesseract-cache:
+
+networks:
+  ai-network:
+    driver: bridge

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 from functools import lru_cache
 from typing import Any
 
@@ -54,7 +55,8 @@ class Settings(BaseSettings):
 
     # OCR settings
     tesseract_path: str | None = Field(
-        default=None, description="Tesseract executable path"
+        default_factory=lambda: shutil.which("tesseract"),
+        description="Tesseract executable path",
     )
     tesseract_languages: str = Field(default="eng+tha", description="OCR languages")
     ocr_confidence_threshold: float = Field(

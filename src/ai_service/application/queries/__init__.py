@@ -1,30 +1,19 @@
 """Query handlers for CQRS pattern."""
 
-from .base import Query, QueryHandler
+from .base import Query, QueryHandler, QueryResult
 from .spending_queries import (
-    AnalyzeSpendingPatternsQuery,
-    AnalyzeSpendingPatternsQueryHandler,
     GetSpendingEntriesQuery,
     GetSpendingEntriesQueryHandler,
-    GetSpendingEntryQuery,
-    GetSpendingEntryQueryHandler,
-    GetSpendingStatisticsQuery,
-    GetSpendingStatisticsQueryHandler,
-    SearchSpendingEntriesQuery,
-    SearchSpendingEntriesQueryHandler,
+    GetSpendingEntryByIdQuery,
+    GetSpendingEntryByIdQueryHandler,
 )
 
 __all__ = [
-    "AnalyzeSpendingPatternsQuery",
-    "AnalyzeSpendingPatternsQueryHandler",
-    "GetSpendingEntriesQuery",
-    "GetSpendingEntriesQueryHandler",
-    "GetSpendingEntryQuery",
-    "GetSpendingEntryQueryHandler",
-    "GetSpendingStatisticsQuery",
-    "GetSpendingStatisticsQueryHandler",
     "Query",
     "QueryHandler",
-    "SearchSpendingEntriesQuery",
-    "SearchSpendingEntriesQueryHandler",
+    "QueryResult",
+    "GetSpendingEntryByIdQuery",
+    "GetSpendingEntryByIdQueryHandler",
+    "GetSpendingEntriesQuery",
+    "GetSpendingEntriesQueryHandler",
 ]

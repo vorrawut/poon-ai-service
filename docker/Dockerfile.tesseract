@@ -1,0 +1,51 @@
+# Multi-stage Dockerfile for AI Service with Tesseract OCR
+FROM python:3.11-slim as base
+
+# Install system dependencies for Tesseract
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    tesseract-ocr-tha \
+    tesseract-ocr-chi-sim \
+    tesseract-ocr-jpn \
+    tesseract-ocr-kor \
+    libtesseract-dev \
+    libleptonica-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify Tesseract installation
+RUN tesseract --version && tesseract --list-langs
+
+# Set environment variables
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+ENV TESSERACT_PATH=/usr/bin/tesseract
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Development stage
+FROM base as development
+COPY requirements-dev.txt .
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+COPY . .
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+
+# Production stage
+FROM base as production
+COPY src/ ./src/
+COPY main.py ./
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8001/api/v1/health')"
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001"]

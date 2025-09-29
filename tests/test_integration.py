@@ -5,8 +5,8 @@ Tests the complete pipeline from text input to database storage
 """
 
 import asyncio
-from datetime import datetime
 import sys
+from datetime import datetime
 
 import aiohttp
 

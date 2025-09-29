@@ -1,7 +1,7 @@
 # Poon AI Service Makefile
 # Clean Architecture FastAPI microservice for AI-powered spending analysis
 
-.PHONY: help install install-dev clean lint format type-check test test-unit test-integration test-coverage security pre-commit run run-dev run-prod docker-build docker-run docker-clean docs serve-docs bruno-update ollama-setup env-local env-dev env-prod migrate db-reset logs health check-deps upgrade-deps
+.PHONY: help install install-dev clean setup-tesseract check-tesseract test-ocr lint format type-check test test-unit test-integration test-coverage security pre-commit run run-dev run-prod docker-build docker-run docker-clean docs serve-docs bruno-update ollama-setup env-local env-dev env-prod migrate db-reset logs health check-deps upgrade-deps
 
 # Default target
 .DEFAULT_GOAL := help
@@ -62,6 +62,34 @@ clean: ## 🧹 Clean up build artifacts and cache
 	find . -type d -name ".ruff_cache" -exec rm -rf {} +
 	rm -rf build/ dist/ htmlcov/ .coverage
 	@echo "$(GREEN)✅ Cleanup completed$(RESET)"
+
+# OCR Setup
+setup-tesseract: ## 🔍 Setup Tesseract OCR for all environments
+	@echo "$(BLUE)Setting up Tesseract OCR...$(RESET)"
+	@chmod +x scripts/setup_tesseract.sh
+	@./scripts/setup_tesseract.sh
+	@echo "$(GREEN)✅ Tesseract OCR setup completed$(RESET)"
+
+check-tesseract: ## ✅ Check Tesseract OCR installation and languages
+	@echo "$(BLUE)Checking Tesseract OCR...$(RESET)"
+	@if command -v tesseract >/dev/null 2>&1; then \
+		echo "$(GREEN)✅ Tesseract found: $$(tesseract --version 2>&1 | head -n1)$(RESET)"; \
+		echo "$(CYAN)Available languages:$(RESET)"; \
+		tesseract --list-langs 2>/dev/null | tail -n +2 | while read lang; do \
+			case $$lang in \
+				eng) echo "  $(GREEN)✓ English ($$lang)$(RESET)" ;; \
+				tha) echo "  $(GREEN)✓ Thai ($$lang)$(RESET)" ;; \
+				*) echo "  - $$lang" ;; \
+			esac; \
+		done; \
+	else \
+		echo "$(RED)❌ Tesseract not found. Run 'make setup-tesseract' to install.$(RESET)"; \
+		exit 1; \
+	fi
+
+test-ocr: ## 🧪 Test OCR functionality with sample images
+	@echo "$(BLUE)Testing OCR functionality...$(RESET)"
+	@$(PYTHON) -c "import sys; sys.path.insert(0, 'src'); from ai_service.infrastructure.external_apis.ocr_client import TesseractOCRClient; import asyncio; client = TesseractOCRClient(); print('$(GREEN)✅ OCR client available$(RESET)' if client.is_available() else '$(RED)❌ OCR client not available$(RESET)'); print('$(CYAN)Languages:$(RESET)', client.languages if client.is_available() else 'N/A')"
 
 # Code Quality
 lint: ## 🔍 Run linting with Ruff
