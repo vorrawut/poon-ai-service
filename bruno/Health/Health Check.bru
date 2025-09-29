@@ -14,19 +14,19 @@ tests {
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-  
+
   test("Response has status field", function() {
     expect(res.getBody().status).to.equal("healthy");
   });
-  
+
   test("Response has service name", function() {
     expect(res.getBody().service).to.be.a("string");
   });
-  
+
   test("Response has version", function() {
     expect(res.getBody().version).to.be.a("string");
   });
-  
+
   test("Response time is reasonable", function() {
     expect(res.getResponseTime()).to.be.below(1000);
   });

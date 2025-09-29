@@ -143,10 +143,7 @@ class ProcessingMetadata:
 
     def is_fast(self) -> bool:
         """Check if processing was fast (< 1000ms)."""
-        return (
-            self.processing_time_ms is not None
-            and self.processing_time_ms < 1000
-        )
+        return self.processing_time_ms is not None and self.processing_time_ms < 1000
 
     def is_free(self) -> bool:
         """Check if processing was free (no cost)."""
@@ -154,10 +151,7 @@ class ProcessingMetadata:
 
     def has_errors(self) -> bool:
         """Check if processing encountered errors."""
-        return (
-            self.errors_encountered is not None
-            and len(self.errors_encountered) > 0
-        )
+        return self.errors_encountered is not None and len(self.errors_encountered) > 0
 
     def get_performance_rating(self) -> str:
         """Get performance rating based on speed and cost."""

@@ -2,6 +2,6 @@
 Utility modules for AI service
 """
 
-from .cache import cache_manager, SimpleCache
+from .cache import SimpleCache, cache_manager
 
 __all__ = ["cache_manager", "SimpleCache"]

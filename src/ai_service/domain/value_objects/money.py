@@ -54,7 +54,9 @@ class Money:
     def add(self, other: Money) -> Money:
         """Add two money amounts (must be same currency)."""
         if self.currency != other.currency:
-            msg = f"Cannot add different currencies: {self.currency} and {other.currency}"
+            msg = (
+                f"Cannot add different currencies: {self.currency} and {other.currency}"
+            )
             raise ValueError(msg)
 
         return Money(amount=self.amount + other.amount, currency=self.currency)

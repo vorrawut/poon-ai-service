@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum
-import re
 from typing import Any
 
 
@@ -59,10 +59,10 @@ class TextContent:
     def _clean_text(text: str) -> str:
         """Clean text by removing extra whitespace and normalizing."""
         # Remove extra whitespace
-        cleaned = re.sub(r'\s+', ' ', text.strip())
+        cleaned = re.sub(r"\s+", " ", text.strip())
 
         # Remove control characters but keep Thai characters
-        cleaned = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]', '', cleaned)
+        cleaned = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]", "", cleaned)
 
         return cleaned
 
@@ -70,8 +70,8 @@ class TextContent:
     def _detect_language(text: str) -> Language:
         """Detect language of text content."""
         # Check for Thai characters (Unicode range for Thai)
-        thai_chars = len(re.findall(r'[\u0E00-\u0E7F]', text))
-        english_chars = len(re.findall(r'[a-zA-Z]', text))
+        thai_chars = len(re.findall(r"[\u0E00-\u0E7F]", text))
+        english_chars = len(re.findall(r"[a-zA-Z]", text))
 
         total_alpha = thai_chars + english_chars
 
@@ -92,7 +92,9 @@ class TextContent:
         # For Thai text, count by spaces and Thai word boundaries
         if self.language == Language.THAI:
             # Simple approximation for Thai (actual word segmentation is complex)
-            return len(self.content.split()) + len(re.findall(r'[\u0E00-\u0E7F]+', self.content))
+            return len(self.content.split()) + len(
+                re.findall(r"[\u0E00-\u0E7F]+", self.content)
+            )
         else:
             return len(self.content.split())
 
@@ -102,14 +104,14 @@ class TextContent:
 
     def contains_numbers(self) -> bool:
         """Check if text contains numbers."""
-        return bool(re.search(r'\d', self.content))
+        return bool(re.search(r"\d", self.content))
 
     def extract_numbers(self) -> list[float]:
         """Extract all numbers from text."""
         # Match various number formats including Thai currency
         patterns = [
-            r'\d+(?:,\d{3})*(?:\.\d{2})?',  # English format: 1,234.56
-            r'\d+(?:\.\d{2})?',  # Simple format: 1234.56
+            r"\d+(?:,\d{3})*(?:\.\d{2})?",  # English format: 1,234.56
+            r"\d+(?:\.\d{2})?",  # Simple format: 1234.56
         ]
 
         numbers = []
@@ -118,7 +120,7 @@ class TextContent:
             for match in matches:
                 try:
                     # Remove commas and convert to float
-                    num = float(match.replace(',', ''))
+                    num = float(match.replace(",", ""))
                     numbers.append(num)
                 except ValueError:
                     continue
@@ -128,8 +130,18 @@ class TextContent:
     def extract_currency_mentions(self) -> list[str]:
         """Extract currency mentions from text."""
         currency_patterns = [
-            r'บาท', r'baht', r'฿', r'\$', r'dollar', r'usd',
-            r'euro', r'eur', r'€', r'pound', r'gbp', r'£'
+            r"บาท",
+            r"baht",
+            r"฿",
+            r"\$",
+            r"dollar",
+            r"usd",
+            r"euro",
+            r"eur",
+            r"€",
+            r"pound",
+            r"gbp",
+            r"£",
         ]
 
         currencies = []
@@ -144,17 +156,48 @@ class TextContent:
         # Keywords that suggest spending
         spending_keywords = [
             # English
-            'buy', 'bought', 'purchase', 'paid', 'spend', 'cost', 'price',
-            'coffee', 'lunch', 'dinner', 'food', 'restaurant', 'taxi', 'grab',
-            'shopping', 'store', 'mall', 'gas', 'fuel', 'grocery',
-
+            "buy",
+            "bought",
+            "purchase",
+            "paid",
+            "spend",
+            "cost",
+            "price",
+            "coffee",
+            "lunch",
+            "dinner",
+            "food",
+            "restaurant",
+            "taxi",
+            "grab",
+            "shopping",
+            "store",
+            "mall",
+            "gas",
+            "fuel",
+            "grocery",
             # Thai
-            'ซื้อ', 'จ่าย', 'ใช้', 'ค่า', 'ราคา', 'อาหาร', 'กิน', 'ข้าว',
-            'ร้าน', 'ห้าง', 'ตลาด', 'แท็กซี่', 'รถ', 'น้ำมัน', 'กาแฟ'
+            "ซื้อ",
+            "จ่าย",
+            "ใช้",
+            "ค่า",
+            "ราคา",
+            "อาหาร",
+            "กิน",
+            "ข้าว",
+            "ร้าน",
+            "ห้าง",
+            "ตลาด",
+            "แท็กซี่",
+            "รถ",
+            "น้ำมัน",
+            "กาแฟ",
         ]
 
         text_lower = self.content.lower()
-        keyword_matches = sum(1 for keyword in spending_keywords if keyword in text_lower)
+        keyword_matches = sum(
+            1 for keyword in spending_keywords if keyword in text_lower
+        )
 
         # Check for numbers (likely amounts)
         has_numbers = self.contains_numbers()
@@ -202,7 +245,7 @@ class TextContent:
         if len(self.content) <= max_length:
             return self.content
 
-        return self.content[:max_length - 3] + "..."
+        return self.content[: max_length - 3] + "..."
 
     def __str__(self) -> str:
         """String representation."""

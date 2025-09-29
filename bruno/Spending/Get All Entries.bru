@@ -19,11 +19,11 @@ tests {
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-  
+
   test("Response is an array", function() {
     expect(res.getBody()).to.be.an("array");
   });
-  
+
   test("Each entry has required fields", function() {
     const entries = res.getBody();
     if (entries.length > 0) {

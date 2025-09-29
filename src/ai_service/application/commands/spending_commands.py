@@ -57,7 +57,9 @@ class CreateSpendingEntryCommand(Command):
             raise ValueError(msg)
 
 
-class CreateSpendingEntryCommandHandler(CommandHandler[CreateSpendingEntryCommand, CommandResult]):
+class CreateSpendingEntryCommandHandler(
+    CommandHandler[CreateSpendingEntryCommand, CommandResult]
+):
     """Handler for creating spending entries."""
 
     def __init__(self, repository: SpendingRepository) -> None:
@@ -97,13 +99,12 @@ class CreateSpendingEntryCommandHandler(CommandHandler[CreateSpendingEntryComman
 
             return CommandResult.success_result(
                 message="Spending entry created successfully",
-                data={"entry_id": entry.id.value}
+                data={"entry_id": entry.id.value},
             )
 
         except Exception as e:
             return CommandResult.failure_result(
-                message="Failed to create spending entry",
-                errors=[str(e)]
+                message="Failed to create spending entry", errors=[str(e)]
             )
 
 
@@ -135,7 +136,9 @@ class UpdateSpendingEntryCommand(Command):
             raise ValueError(msg)
 
 
-class UpdateSpendingEntryCommandHandler(CommandHandler[UpdateSpendingEntryCommand, CommandResult]):
+class UpdateSpendingEntryCommandHandler(
+    CommandHandler[UpdateSpendingEntryCommand, CommandResult]
+):
     """Handler for updating spending entries."""
 
     def __init__(self, repository: SpendingRepository) -> None:
@@ -154,7 +157,7 @@ class UpdateSpendingEntryCommandHandler(CommandHandler[UpdateSpendingEntryComman
             if entry is None:
                 return CommandResult.failure_result(
                     message="Spending entry not found",
-                    errors=[f"No entry found with ID: {command.entry_id}"]
+                    errors=[f"No entry found with ID: {command.entry_id}"],
                 )
 
             # Update fields
@@ -174,13 +177,12 @@ class UpdateSpendingEntryCommandHandler(CommandHandler[UpdateSpendingEntryComman
 
             return CommandResult.success_result(
                 message="Spending entry updated successfully",
-                data={"entry_id": entry.id.value}
+                data={"entry_id": entry.id.value},
             )
 
         except Exception as e:
             return CommandResult.failure_result(
-                message="Failed to update spending entry",
-                errors=[str(e)]
+                message="Failed to update spending entry", errors=[str(e)]
             )
 
 
@@ -198,7 +200,9 @@ class DeleteSpendingEntryCommand(Command):
             raise ValueError(msg)
 
 
-class DeleteSpendingEntryCommandHandler(CommandHandler[DeleteSpendingEntryCommand, CommandResult]):
+class DeleteSpendingEntryCommandHandler(
+    CommandHandler[DeleteSpendingEntryCommand, CommandResult]
+):
     """Handler for deleting spending entries."""
 
     def __init__(self, repository: SpendingRepository) -> None:
@@ -216,18 +220,17 @@ class DeleteSpendingEntryCommandHandler(CommandHandler[DeleteSpendingEntryComman
             if not deleted:
                 return CommandResult.failure_result(
                     message="Spending entry not found",
-                    errors=[f"No entry found with ID: {command.entry_id}"]
+                    errors=[f"No entry found with ID: {command.entry_id}"],
                 )
 
             return CommandResult.success_result(
                 message="Spending entry deleted successfully",
-                data={"entry_id": command.entry_id}
+                data={"entry_id": command.entry_id},
             )
 
         except Exception as e:
             return CommandResult.failure_result(
-                message="Failed to delete spending entry",
-                errors=[str(e)]
+                message="Failed to delete spending entry", errors=[str(e)]
             )
 
 
@@ -272,14 +275,12 @@ class ProcessTextCommandHandler(CommandHandler[ProcessTextCommand, CommandResult
 
             # Process text to extract spending data
             processing_result = await self._text_processing_service.process_text(
-                text_content,
-                context=command.user_context
+                text_content, context=command.user_context
             )
 
             if not processing_result.success:
                 return CommandResult.failure_result(
-                    message="Failed to process text",
-                    errors=processing_result.errors
+                    message="Failed to process text", errors=processing_result.errors
                 )
 
             # Create spending entry from processing result
@@ -294,13 +295,12 @@ class ProcessTextCommandHandler(CommandHandler[ProcessTextCommand, CommandResult
                     "entry_id": entry.id.value,
                     "confidence": entry.confidence.value,
                     "processing_method": entry.processing_method.value,
-                }
+                },
             )
 
         except Exception as e:
             return CommandResult.failure_result(
-                message="Failed to process text",
-                errors=[str(e)]
+                message="Failed to process text", errors=[str(e)]
             )
 
 
@@ -346,21 +346,17 @@ class ProcessImageCommandHandler(CommandHandler[ProcessImageCommand, CommandResu
 
             image_format = ImageFormat(command.image_format)
             image_data = ImageData(
-                data=command.image_data,
-                format=image_format,
-                filename=command.filename
+                data=command.image_data, format=image_format, filename=command.filename
             )
 
             # Process image to extract spending data
             processing_result = await self._image_processing_service.process_image(
-                image_data,
-                ocr_language=command.language
+                image_data, ocr_language=command.language
             )
 
             if not processing_result.success:
                 return CommandResult.failure_result(
-                    message="Failed to process image",
-                    errors=processing_result.errors
+                    message="Failed to process image", errors=processing_result.errors
                 )
 
             # Create spending entry from processing result
@@ -376,13 +372,12 @@ class ProcessImageCommandHandler(CommandHandler[ProcessImageCommand, CommandResu
                     "confidence": entry.confidence.value,
                     "processing_method": entry.processing_method.value,
                     "ocr_text": processing_result.extracted_text,
-                }
+                },
             )
 
         except Exception as e:
             return CommandResult.failure_result(
-                message="Failed to process image",
-                errors=[str(e)]
+                message="Failed to process image", errors=[str(e)]
             )
 
 
@@ -425,26 +420,28 @@ class EnhanceWithAICommandHandler(CommandHandler[EnhanceWithAICommand, CommandRe
             if entry is None:
                 return CommandResult.failure_result(
                     message="Spending entry not found",
-                    errors=[f"No entry found with ID: {command.entry_id}"]
+                    errors=[f"No entry found with ID: {command.entry_id}"],
                 )
 
             # Check if enhancement is needed
             if entry.is_high_confidence() and not command.force_enhancement:
                 return CommandResult.success_result(
                     message="Entry already has high confidence, skipping enhancement",
-                    data={"entry_id": entry.id.value, "confidence": entry.confidence.value}
+                    data={
+                        "entry_id": entry.id.value,
+                        "confidence": entry.confidence.value,
+                    },
                 )
 
             # Enhance with AI
             enhancement_result = await self._ai_enhancement_service.enhance_entry(
-                entry,
-                model_preference=command.ai_model
+                entry, model_preference=command.ai_model
             )
 
             if not enhancement_result.success:
                 return CommandResult.failure_result(
                     message="Failed to enhance with AI",
-                    errors=enhancement_result.errors
+                    errors=enhancement_result.errors,
                 )
 
             # Update entry with AI enhancements
@@ -460,11 +457,10 @@ class EnhanceWithAICommandHandler(CommandHandler[EnhanceWithAICommand, CommandRe
                     "confidence_before": entry.confidence.value,
                     "confidence_after": enhanced_entry.confidence.value,
                     "ai_model": enhancement_result.model_used,
-                }
+                },
             )
 
         except Exception as e:
             return CommandResult.failure_result(
-                message="Failed to enhance with AI",
-                errors=[str(e)]
+                message="Failed to enhance with AI", errors=[str(e)]
             )

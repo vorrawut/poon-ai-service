@@ -17,10 +17,10 @@ class LlamaClient:
         self,
         base_url: str = "http://localhost:11434",
         model: str = "llama3.2:3b",
-        timeout: int = 30
+        timeout: int = 30,
     ) -> None:
         """Initialize Llama client."""
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.model = model
         self.timeout = timeout
         self._session: aiohttp.ClientSession | None = None
@@ -52,7 +52,7 @@ class LlamaClient:
         prompt: str,
         system_prompt: str | None = None,
         temperature: float = 0.7,
-        max_tokens: int | None = None
+        max_tokens: int | None = None,
     ) -> dict[str, Any]:
         """Generate text completion using Llama model."""
         try:
@@ -64,7 +64,7 @@ class LlamaClient:
                 "stream": False,
                 "options": {
                     "temperature": temperature,
-                }
+                },
             }
 
             if system_prompt:
@@ -74,21 +74,17 @@ class LlamaClient:
                 payload["options"]["num_predict"] = max_tokens
 
             async with session.post(
-                f"{self.base_url}/api/generate",
-                json=payload
+                f"{self.base_url}/api/generate", json=payload
             ) as response:
-
                 if response.status != 200:
                     error_text = await response.text()
                     logger.error(
-                        "Llama API error",
-                        status=response.status,
-                        error=error_text
+                        "Llama API error", status=response.status, error=error_text
                     )
                     return {
                         "success": False,
                         "error": f"API error: {response.status}",
-                        "response": None
+                        "response": None,
                     }
 
                 result = await response.json()
@@ -105,24 +101,13 @@ class LlamaClient:
 
         except TimeoutError:
             logger.error("Llama API timeout", timeout=self.timeout)
-            return {
-                "success": False,
-                "error": "Request timeout",
-                "response": None
-            }
+            return {"success": False, "error": "Request timeout", "response": None}
         except Exception as e:
             logger.error("Llama API error", error=str(e))
-            return {
-                "success": False,
-                "error": str(e),
-                "response": None
-            }
+            return {"success": False, "error": str(e), "response": None}
 
     async def parse_spending_text(
-        self,
-        text: str,
-        language: str = "en",
-        context: dict[str, Any] | None = None
+        self, text: str, language: str = "en", context: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Parse spending text using Llama model."""
 
@@ -159,7 +144,7 @@ Return the JSON object:"""
             prompt=user_prompt,
             system_prompt=system_prompt,
             temperature=0.3,  # Lower temperature for more consistent parsing
-            max_tokens=200
+            max_tokens=200,
         )
 
         if not result["success"]:
@@ -167,11 +152,14 @@ Return the JSON object:"""
 
         try:
             import json
+
             response_text = result["response"].strip()
 
             # Try to extract JSON from response
             if response_text.startswith("```json"):
-                response_text = response_text.replace("```json", "").replace("```", "").strip()
+                response_text = (
+                    response_text.replace("```json", "").replace("```", "").strip()
+                )
             elif response_text.startswith("```"):
                 response_text = response_text.replace("```", "").strip()
 
@@ -186,17 +174,21 @@ Return the JSON object:"""
             }
 
         except json.JSONDecodeError as e:
-            logger.error("Failed to parse Llama JSON response", error=str(e), response=result["response"])
+            logger.error(
+                "Failed to parse Llama JSON response",
+                error=str(e),
+                response=result["response"],
+            )
             return {
                 "success": False,
                 "error": f"Invalid JSON response: {e!s}",
-                "raw_response": result["response"]
+                "raw_response": result["response"],
             }
 
     async def analyze_spending_patterns(
         self,
         spending_entries: list[dict[str, Any]],
-        analysis_type: str = "comprehensive"
+        analysis_type: str = "comprehensive",
     ) -> dict[str, Any]:
         """Analyze spending patterns using Llama model."""
 
@@ -226,7 +218,7 @@ Return the JSON object:"""
         data_summary = {
             "total_entries": len(spending_entries),
             "entries": spending_entries[:20],  # Limit to avoid token limits
-            "analysis_type": analysis_type
+            "analysis_type": analysis_type,
         }
 
         user_prompt = f"""Analyze this spending data and provide insights:
@@ -239,7 +231,7 @@ Return the JSON analysis:"""
             prompt=user_prompt,
             system_prompt=system_prompt,
             temperature=0.5,
-            max_tokens=800
+            max_tokens=800,
         )
 
         if not result["success"]:
@@ -247,11 +239,14 @@ Return the JSON analysis:"""
 
         try:
             import json
+
             response_text = result["response"].strip()
 
             # Clean up response
             if response_text.startswith("```json"):
-                response_text = response_text.replace("```json", "").replace("```", "").strip()
+                response_text = (
+                    response_text.replace("```json", "").replace("```", "").strip()
+                )
             elif response_text.startswith("```"):
                 response_text = response_text.replace("```", "").strip()
 
@@ -270,5 +265,5 @@ Return the JSON analysis:"""
             return {
                 "success": False,
                 "error": f"Invalid JSON response: {e!s}",
-                "raw_response": result["response"]
+                "raw_response": result["response"],
             }

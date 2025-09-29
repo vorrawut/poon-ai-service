@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
 # Type variables for command and result
-TCommand = TypeVar('TCommand', bound='Command')
-TResult = TypeVar('TResult')
+TCommand = TypeVar("TCommand", bound="Command")
+TResult = TypeVar("TResult")
 
 
 @dataclass(frozen=True)
@@ -66,15 +66,15 @@ class CommandResult:
     errors: list[str] | None = None
 
     @classmethod
-    def success_result(cls, message: str | None = None, data: Any = None) -> CommandResult:
+    def success_result(
+        cls, message: str | None = None, data: Any = None
+    ) -> CommandResult:
         """Create a successful command result."""
         return cls(success=True, message=message, data=data)
 
     @classmethod
     def failure_result(
-        cls,
-        message: str | None = None,
-        errors: list[str] | None = None
+        cls, message: str | None = None, errors: list[str] | None = None
     ) -> CommandResult:
         """Create a failed command result."""
         return cls(success=False, message=message, errors=errors)

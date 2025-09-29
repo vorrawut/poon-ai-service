@@ -1,7 +1,7 @@
-git """Metrics middleware for Prometheus."""
+"""Metrics middleware for Prometheus."""
 
-from collections.abc import Callable
 import time
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from prometheus_client import Counter, Histogram
@@ -9,27 +9,25 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
-    'http_requests_total',
-    'Total HTTP requests',
-    ['method', 'endpoint', 'status_code']
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status_code"]
 )
 
 REQUEST_DURATION = Histogram(
-    'http_request_duration_seconds',
-    'HTTP request duration in seconds',
-    ['method', 'endpoint']
+    "http_request_duration_seconds",
+    "HTTP request duration in seconds",
+    ["method", "endpoint"],
 )
 
 AI_PROCESSING_COUNT = Counter(
-    'ai_processing_total',
-    'Total AI processing requests',
-    ['model_type', 'processing_method', 'success']
+    "ai_processing_total",
+    "Total AI processing requests",
+    ["model_type", "processing_method", "success"],
 )
 
 AI_PROCESSING_DURATION = Histogram(
-    'ai_processing_duration_seconds',
-    'AI processing duration in seconds',
-    ['model_type', 'processing_method']
+    "ai_processing_duration_seconds",
+    "AI processing duration in seconds",
+    ["model_type", "processing_method"],
 )
 
 
@@ -51,15 +49,12 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
         # Record metrics
         REQUEST_COUNT.labels(
-            method=request.method,
-            endpoint=endpoint,
-            status_code=response.status_code
+            method=request.method, endpoint=endpoint, status_code=response.status_code
         ).inc()
 
-        REQUEST_DURATION.labels(
-            method=request.method,
-            endpoint=endpoint
-        ).observe(duration)
+        REQUEST_DURATION.labels(method=request.method, endpoint=endpoint).observe(
+            duration
+        )
 
         return response
 
@@ -68,16 +63,16 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         path = request.url.path
 
         # Common patterns for API endpoints
-        if path.startswith('/api/v1/spending/'):
-            if path.endswith('/entries'):
-                return '/api/v1/spending/entries'
-            elif '/entries/' in path:
-                return '/api/v1/spending/entries/{id}'
-            elif path.endswith('/process/text'):
-                return '/api/v1/spending/process/text'
-            elif path.endswith('/process/image'):
-                return '/api/v1/spending/process/image'
+        if path.startswith("/api/v1/spending/"):
+            if path.endswith("/entries"):
+                return "/api/v1/spending/entries"
+            elif "/entries/" in path:
+                return "/api/v1/spending/entries/{id}"
+            elif path.endswith("/process/text"):
+                return "/api/v1/spending/process/text"
+            elif path.endswith("/process/image"):
+                return "/api/v1/spending/process/image"
             else:
-                return '/api/v1/spending/*'
+                return "/api/v1/spending/*"
 
         return path

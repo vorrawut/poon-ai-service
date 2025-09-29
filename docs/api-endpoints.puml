@@ -11,7 +11,7 @@ package "Health & Status" {
     +services.ai: "ready" | "offline" | "disabled"
     +timestamp: ISO string
   }
-  
+
   class "GET /ai/status" {
     Response: AIStatus
     --
@@ -72,7 +72,7 @@ package "Complete Processing" {
     +processing_method: string
     +confidence: float
   }
-  
+
   class "POST /process/text" {
     Request: JSON
     --
@@ -87,7 +87,7 @@ package "Complete Processing" {
     +category: string
     +processing_method: string
   }
-  
+
   class "POST /process/batch" {
     Request: JSON
     --

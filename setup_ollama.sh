@@ -30,7 +30,7 @@ if command_exists ollama; then
     ollama --version
 else
     echo "📥 Installing Ollama..."
-    
+
     if [[ "$PLATFORM" == "macos" ]]; then
         # Install via Homebrew if available, otherwise use curl
         if command_exists brew; then
@@ -45,7 +45,7 @@ else
         echo "🐧 Installing on Linux..."
         curl -fsSL https://ollama.ai/install.sh | sh
     fi
-    
+
     echo "✅ Ollama installed successfully"
 fi
 
@@ -99,7 +99,7 @@ if ollama list | grep -q "llama3.2:3b"; then
 else
     echo "⬇️ Downloading Llama 3.2 3B model..."
     ollama pull llama3.2:3b
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Llama 3.2 3B model downloaded successfully"
     else

@@ -27,7 +27,9 @@ def setup_logging() -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.dev.set_exc_info,
             structlog.processors.TimeStamper(fmt="ISO"),
-            structlog.dev.ConsoleRenderer() if settings.is_development() else structlog.processors.JSONRenderer(),
+            structlog.dev.ConsoleRenderer()
+            if settings.is_development()
+            else structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
             getattr(logging, settings.log_level)

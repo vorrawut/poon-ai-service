@@ -51,11 +51,7 @@ class SpendingRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_all(
-        self,
-        limit: int = 100,
-        offset: int = 0
-    ) -> list[SpendingEntry]:
+    async def find_all(self, limit: int = 100, offset: int = 0) -> list[SpendingEntry]:
         """
         Find all spending entries with pagination.
 
@@ -77,7 +73,7 @@ class SpendingRepository(ABC):
         start_date: datetime,
         end_date: datetime,
         limit: int = 100,
-        offset: int = 0
+        offset: int = 0,
     ) -> list[SpendingEntry]:
         """
         Find spending entries within a date range.
@@ -98,10 +94,7 @@ class SpendingRepository(ABC):
 
     @abstractmethod
     async def find_by_category(
-        self,
-        category: SpendingCategory,
-        limit: int = 100,
-        offset: int = 0
+        self, category: SpendingCategory, limit: int = 100, offset: int = 0
     ) -> list[SpendingEntry]:
         """
         Find spending entries by category.
@@ -121,10 +114,7 @@ class SpendingRepository(ABC):
 
     @abstractmethod
     async def find_by_merchant(
-        self,
-        merchant: str,
-        limit: int = 100,
-        offset: int = 0
+        self, merchant: str, limit: int = 100, offset: int = 0
     ) -> list[SpendingEntry]:
         """
         Find spending entries by merchant name.
@@ -144,10 +134,7 @@ class SpendingRepository(ABC):
 
     @abstractmethod
     async def search_by_text(
-        self,
-        search_text: str,
-        limit: int = 100,
-        offset: int = 0
+        self, search_text: str, limit: int = 100, offset: int = 0
     ) -> list[SpendingEntry]:
         """
         Search spending entries by text in merchant or description.

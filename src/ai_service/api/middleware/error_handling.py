@@ -1,12 +1,12 @@
 """Error handling middleware."""
 
-from collections.abc import Callable
 import traceback
+from collections.abc import Callable
 
+import structlog
 from fastapi import Request, Response
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -26,15 +26,15 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 "Validation error",
                 path=request.url.path,
                 method=request.method,
-                error=str(e)
+                error=str(e),
             )
             return JSONResponse(
                 status_code=400,
                 content={
                     "error": "Validation Error",
                     "message": str(e),
-                    "type": "validation_error"
-                }
+                    "type": "validation_error",
+                },
             )
 
         except PermissionError as e:
@@ -43,15 +43,15 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 "Permission denied",
                 path=request.url.path,
                 method=request.method,
-                error=str(e)
+                error=str(e),
             )
             return JSONResponse(
                 status_code=403,
                 content={
                     "error": "Permission Denied",
                     "message": str(e),
-                    "type": "permission_error"
-                }
+                    "type": "permission_error",
+                },
             )
 
         except FileNotFoundError as e:
@@ -60,15 +60,15 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 "Resource not found",
                 path=request.url.path,
                 method=request.method,
-                error=str(e)
+                error=str(e),
             )
             return JSONResponse(
                 status_code=404,
                 content={
                     "error": "Not Found",
                     "message": str(e),
-                    "type": "not_found_error"
-                }
+                    "type": "not_found_error",
+                },
             )
 
         except TimeoutError as e:
@@ -77,15 +77,15 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 "Request timeout",
                 path=request.url.path,
                 method=request.method,
-                error=str(e)
+                error=str(e),
             )
             return JSONResponse(
                 status_code=408,
                 content={
                     "error": "Request Timeout",
                     "message": "The request took too long to process",
-                    "type": "timeout_error"
-                }
+                    "type": "timeout_error",
+                },
             )
 
         except ConnectionError as e:
@@ -94,15 +94,15 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 "Service unavailable",
                 path=request.url.path,
                 method=request.method,
-                error=str(e)
+                error=str(e),
             )
             return JSONResponse(
                 status_code=503,
                 content={
                     "error": "Service Unavailable",
                     "message": "External service is temporarily unavailable",
-                    "type": "connection_error"
-                }
+                    "type": "connection_error",
+                },
             )
 
         except Exception as e:
@@ -112,7 +112,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 path=request.url.path,
                 method=request.method,
                 error=str(e),
-                traceback=traceback.format_exc()
+                traceback=traceback.format_exc(),
             )
 
             return JSONResponse(
@@ -120,6 +120,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 content={
                     "error": "Internal Server Error",
                     "message": "An unexpected error occurred",
-                    "type": "internal_error"
-                }
+                    "type": "internal_error",
+                },
             )

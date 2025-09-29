@@ -10,7 +10,7 @@ package "FastAPI Application" {
     +health_check()
     +get_ai_status()
   }
-  
+
   class "Settings" as Config {
     +ollama_url: str
     +llama_model: str
@@ -28,7 +28,7 @@ package "Core Services" {
     +_openai_vision_ocr()
     +process_receipt_ocr()
   }
-  
+
   class "NLPService" as NLP {
     +patterns: Dict
     +merchant_db: Dict
@@ -39,7 +39,7 @@ package "Core Services" {
     +_predict_category()
     +suggest_categories()
   }
-  
+
   class "LlamaService" as Llama {
     +ollama_url: str
     +model: str
@@ -49,7 +49,7 @@ package "Core Services" {
     +create_spending_entry()
     +analyze_spending_patterns()
   }
-  
+
   class "AIService" as OpenAI {
     +client: AsyncOpenAI
     +model: str
@@ -57,7 +57,7 @@ package "Core Services" {
     +create_spending_entry()
     +analyze_spending_patterns()
   }
-  
+
   class "CacheService" as Cache {
     +redis_client: Optional
     +memory_cache: Dict
@@ -75,7 +75,7 @@ package "Data Models" {
     +method: str
     +bounding_boxes: List
   }
-  
+
   class "NLPResult" as NLPModel {
     +merchant: Optional[str]
     +amount: Optional[float]
@@ -84,7 +84,7 @@ package "Data Models" {
     +reasoning: str
     +extraction_details: Dict
   }
-  
+
   class "SpendingEntry" as SpendingModel {
     +amount: float
     +merchant: str
@@ -93,7 +93,7 @@ package "Data Models" {
     +confidence: float
     +processing_method: str
   }
-  
+
   class "AIAnalysis" as AnalysisModel {
     +insights: List[AIInsight]
     +recommendations: List[AIRecommendation]
@@ -110,7 +110,7 @@ package "Utilities" {
     +enhance_for_ocr()
     +extract_metadata()
   }
-  
+
   class "TextUtils" as TxtUtils {
     +clean_text()
     +detect_language()
@@ -127,19 +127,19 @@ package "External Integrations" {
     +generate()
     +list_models()
   }
-  
+
   class "OpenAI API" as OpenAIAPI {
     +chat.completions.create()
     +vision processing
     +gpt-4o-mini model
   }
-  
+
   class "Tesseract" as TesseractExt {
     +image_to_string()
     +image_to_data()
     +languages: [eng, tha]
   }
-  
+
   class "Redis" as RedisExt {
     +get()
     +set()

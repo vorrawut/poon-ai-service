@@ -26,13 +26,13 @@ tests {
   test("Status code is 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-  
+
   test("Response has parsed data", function() {
     const body = res.getBody();
     expect(body.success).to.be.true;
     expect(body.parsed_data).to.be.an("object");
   });
-  
+
   test("Parsed data has required fields", function() {
     const parsed = res.getBody().parsed_data;
     expect(parsed.amount).to.be.a("number");
@@ -40,7 +40,7 @@ tests {
     expect(parsed.category).to.be.a("string");
     expect(parsed.confidence).to.be.a("number");
   });
-  
+
   test("Confidence score is valid", function() {
     const confidence = res.getBody().parsed_data.confidence;
     expect(confidence).to.be.at.least(0);

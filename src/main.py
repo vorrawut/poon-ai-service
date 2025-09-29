@@ -7,11 +7,11 @@ This is a Clean Architecture FastAPI microservice for AI-powered spending analys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
+import structlog
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import make_asgi_app
-import structlog
-import uvicorn
 
 from ai_service.api.middleware.error_handling import ErrorHandlingMiddleware
 from ai_service.api.middleware.logging import LoggingMiddleware
@@ -55,7 +55,7 @@ class ServiceRegistry:
             self.llama_client = LlamaClient(
                 base_url=settings.get_ollama_url(),
                 model=settings.llama_model,
-                timeout=settings.llama_timeout
+                timeout=settings.llama_timeout,
             )
 
             # Test connection
@@ -68,7 +68,7 @@ class ServiceRegistry:
         # Initialize OCR client
         self.ocr_client = TesseractOCRClient(
             tesseract_path=settings.tesseract_path,
-            languages=settings.tesseract_languages
+            languages=settings.tesseract_languages,
         )
 
         if self.ocr_client.is_available():
@@ -109,7 +109,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         "🦙 Starting Poon AI Service",
         version=settings.app_version,
         environment=settings.environment,
-        debug=settings.debug
+        debug=settings.debug,
     )
 
     try:

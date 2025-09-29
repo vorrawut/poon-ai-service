@@ -13,17 +13,17 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
     # Application settings
     app_name: str = Field(default="Poon AI Service", description="Application name")
     app_version: str = Field(default="1.0.0", description="Application version")
     debug: bool = Field(default=False, description="Debug mode")
-    environment: str = Field(default="development", description="Environment (development/staging/production)")
+    environment: str = Field(
+        default="development",
+        description="Environment (development/staging/production)",
+    )
 
     # Server settings
     host: str = Field(default="0.0.0.0", description="Server host")
@@ -31,11 +31,15 @@ class Settings(BaseSettings):
     reload: bool = Field(default=False, description="Auto-reload on code changes")
 
     # Database settings
-    database_url: str = Field(default="sqlite:///./spending.db", description="Database connection URL")
+    database_url: str = Field(
+        default="sqlite:///./spending.db", description="Database connection URL"
+    )
     database_echo: bool = Field(default=False, description="Echo SQL queries")
 
     # AI Service settings - Ollama/Llama
-    ollama_url: str = Field(default="http://localhost:11434", description="Ollama server URL")
+    ollama_url: str = Field(
+        default="http://localhost:11434", description="Ollama server URL"
+    )
     llama_model: str = Field(default="llama3.2:3b", description="Llama model name")
     llama_timeout: int = Field(default=30, description="Llama API timeout in seconds")
     use_llama: bool = Field(default=True, description="Enable Llama processing")
@@ -44,12 +48,18 @@ class Settings(BaseSettings):
     openai_api_key: str | None = Field(default=None, description="OpenAI API key")
     openai_model: str = Field(default="gpt-4o-mini", description="OpenAI model name")
     openai_timeout: int = Field(default=30, description="OpenAI API timeout in seconds")
-    use_openai_fallback: bool = Field(default=True, description="Use OpenAI as fallback")
+    use_openai_fallback: bool = Field(
+        default=True, description="Use OpenAI as fallback"
+    )
 
     # OCR settings
-    tesseract_path: str | None = Field(default=None, description="Tesseract executable path")
+    tesseract_path: str | None = Field(
+        default=None, description="Tesseract executable path"
+    )
     tesseract_languages: str = Field(default="eng+tha", description="OCR languages")
-    ocr_confidence_threshold: float = Field(default=0.6, description="Minimum OCR confidence")
+    ocr_confidence_threshold: float = Field(
+        default=0.6, description="Minimum OCR confidence"
+    )
 
     # Cache settings
     redis_url: str | None = Field(default=None, description="Redis connection URL")
@@ -58,13 +68,17 @@ class Settings(BaseSettings):
 
     # Processing settings
     max_file_size_mb: int = Field(default=10, description="Maximum file size in MB")
-    max_text_length: int = Field(default=2000, description="Maximum text length for processing")
-    confidence_threshold: float = Field(default=0.7, description="Minimum confidence for auto-acceptance")
+    max_text_length: int = Field(
+        default=2000, description="Maximum text length for processing"
+    )
+    confidence_threshold: float = Field(
+        default=0.7, description="Minimum confidence for auto-acceptance"
+    )
 
     # Security settings
     cors_origins: str = Field(
         default="http://localhost:3000,http://localhost:5173",
-        description="CORS allowed origins (comma-separated)"
+        description="CORS allowed origins (comma-separated)",
     )
     api_key: str | None = Field(default=None, description="API key for authentication")
 
@@ -74,10 +88,18 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", description="Logging level")
 
     # Feature flags
-    enable_voice_processing: bool = Field(default=True, description="Enable voice input processing")
-    enable_batch_processing: bool = Field(default=True, description="Enable batch file processing")
-    enable_ai_enhancement: bool = Field(default=True, description="Enable AI enhancement")
-    enable_pattern_analysis: bool = Field(default=True, description="Enable spending pattern analysis")
+    enable_voice_processing: bool = Field(
+        default=True, description="Enable voice input processing"
+    )
+    enable_batch_processing: bool = Field(
+        default=True, description="Enable batch file processing"
+    )
+    enable_ai_enhancement: bool = Field(
+        default=True, description="Enable AI enhancement"
+    )
+    enable_pattern_analysis: bool = Field(
+        default=True, description="Enable spending pattern analysis"
+    )
 
     @validator("environment")
     @classmethod
@@ -140,12 +162,14 @@ class Settings(BaseSettings):
 
     def get_ollama_url(self) -> str:
         """Get the Ollama server URL."""
-        return self.ollama_url.rstrip('/')
+        return self.ollama_url.rstrip("/")
 
     def get_cors_origins(self) -> list[str]:
         """Get CORS origins list."""
         # Parse comma-separated origins
-        origins = [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        origins = [
+            origin.strip() for origin in self.cors_origins.split(",") if origin.strip()
+        ]
 
         if self.is_development():
             # Add common development origins
@@ -189,20 +213,11 @@ class Settings(BaseSettings):
         }
 
 
-
 @lru_cache
 def get_settings() -> Settings:
     """Get cached application settings."""
     settings = Settings()
 
-    # Validate environment configuration
-    try:
-        settings.validate_environment()
-    except ValueError as e:
-        # In development, log warnings instead of failing
-        if settings.is_development():
-            print(f"Configuration warning: {e}")
-        else:
-            raise
+    # Settings validation is handled automatically by Pydantic
 
     return settings

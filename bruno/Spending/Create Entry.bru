@@ -31,7 +31,7 @@ tests {
   test("Status code is 201", function() {
     expect(res.getStatus()).to.equal(201);
   });
-  
+
   test("Response has created entry", function() {
     const body = res.getBody();
     expect(body.id).to.be.a("string");
@@ -39,7 +39,7 @@ tests {
     expect(body.merchant).to.equal("Starbucks");
     expect(body.category).to.equal("Food & Dining");
   });
-  
+
   test("Entry has proper timestamps", function() {
     const body = res.getBody();
     expect(body.created_at).to.be.a("string");

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+from pathlib import Path
 from typing import Any
 
 import structlog
@@ -17,9 +17,7 @@ class TesseractOCRClient:
     """OCR client using Tesseract."""
 
     def __init__(
-        self,
-        tesseract_path: str | None = None,
-        languages: str = "eng+tha"
+        self, tesseract_path: str | None = None, languages: str = "eng+tha"
     ) -> None:
         """Initialize OCR client."""
         self.tesseract_path = tesseract_path or "tesseract"
@@ -33,9 +31,7 @@ class TesseractOCRClient:
         return self._available
 
     async def extract_text(
-        self,
-        image_data: bytes,
-        language: str | None = None
+        self, image_data: bytes, language: str | None = None
     ) -> dict[str, Any]:
         """Extract text from image using Tesseract OCR."""
         if not self.is_available():
@@ -43,7 +39,7 @@ class TesseractOCRClient:
                 "success": False,
                 "error": "Tesseract OCR not available",
                 "text": "",
-                "confidence": 0.0
+                "confidence": 0.0,
             }
 
         try:
@@ -51,20 +47,28 @@ class TesseractOCRClient:
             ocr_language = language or self.languages
 
             # Create temporary file for image
-            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp_image:
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_image:
                 temp_image.write(image_data)
                 temp_image_path = temp_image.name
 
             try:
                 # Run Tesseract OCR
-                result = subprocess.run([
-                    self.tesseract_path,
-                    temp_image_path,
-                    "stdout",
-                    "-l", ocr_language,
-                    "--oem", "3",  # Use LSTM OCR Engine Mode
-                    "--psm", "6",  # Assume a single uniform block of text
-                ], capture_output=True, text=True, check=True)
+                result = subprocess.run(
+                    [
+                        self.tesseract_path,
+                        temp_image_path,
+                        "stdout",
+                        "-l",
+                        ocr_language,
+                        "--oem",
+                        "3",  # Use LSTM OCR Engine Mode
+                        "--psm",
+                        "6",  # Assume a single uniform block of text
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
 
                 extracted_text = result.stdout.strip()
 
@@ -76,7 +80,7 @@ class TesseractOCRClient:
                     "text": extracted_text,
                     "confidence": confidence,
                     "language": ocr_language,
-                    "method": "tesseract"
+                    "method": "tesseract",
                 }
 
             finally:
@@ -89,37 +93,41 @@ class TesseractOCRClient:
                 "success": False,
                 "error": f"OCR processing failed: {e.stderr}",
                 "text": "",
-                "confidence": 0.0
+                "confidence": 0.0,
             }
         except Exception as e:
             logger.error("OCR error", error=str(e))
-            return {
-                "success": False,
-                "error": str(e),
-                "text": "",
-                "confidence": 0.0
-            }
+            return {"success": False, "error": str(e), "text": "", "confidence": 0.0}
 
     async def _get_confidence(self, image_path: str, language: str) -> float:
         """Get OCR confidence score."""
         try:
             # Run Tesseract with TSV output to get confidence
-            result = subprocess.run([
-                self.tesseract_path,
-                image_path,
-                "stdout",
-                "-l", language,
-                "--oem", "3",
-                "--psm", "6",
-                "-c", "tessedit_create_tsv=1"
-            ], capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                [
+                    self.tesseract_path,
+                    image_path,
+                    "stdout",
+                    "-l",
+                    language,
+                    "--oem",
+                    "3",
+                    "--psm",
+                    "6",
+                    "-c",
+                    "tessedit_create_tsv=1",
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
 
             # Parse TSV output to extract confidence values
-            lines = result.stdout.strip().split('\n')
+            lines = result.stdout.strip().split("\n")
             confidences = []
 
             for line in lines[1:]:  # Skip header
-                parts = line.split('\t')
+                parts = line.split("\t")
                 if len(parts) >= 11 and parts[10].strip():  # conf column
                     try:
                         conf = float(parts[10])

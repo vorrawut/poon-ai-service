@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from typing import Any, Generic, TypeVar
 
 # Type variables for query and result
-TQuery = TypeVar('TQuery', bound='Query')
-TResult = TypeVar('TResult')
+TQuery = TypeVar("TQuery", bound="Query")
+TResult = TypeVar("TResult")
 
 
 @dataclass(frozen=True)
@@ -71,16 +71,14 @@ class QueryResult:
         cls,
         data: Any = None,
         message: str | None = None,
-        total_count: int | None = None
+        total_count: int | None = None,
     ) -> QueryResult:
         """Create a successful query result."""
         return cls(success=True, data=data, message=message, total_count=total_count)
 
     @classmethod
     def failure_result(
-        cls,
-        message: str | None = None,
-        errors: list[str] | None = None
+        cls, message: str | None = None, errors: list[str] | None = None
     ) -> QueryResult:
         """Create a failed query result."""
         return cls(success=False, message=message, errors=errors)

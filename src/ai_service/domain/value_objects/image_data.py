@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 from dataclasses import dataclass
 from enum import Enum
-import hashlib
 from typing import Any
 
 
@@ -37,7 +37,7 @@ class ImageFormat(str, Enum):
     @classmethod
     def from_extension(cls, extension: str) -> ImageFormat:
         """Create ImageFormat from file extension."""
-        ext = extension.lower().lstrip('.')
+        ext = extension.lower().lstrip(".")
         try:
             return cls(ext)
         except ValueError:
@@ -71,7 +71,9 @@ class ImageQuality(str, Enum):
     EXCELLENT = "excellent"
 
     @classmethod
-    def from_size_and_dimensions(cls, size_bytes: int, width: int, height: int) -> ImageQuality:
+    def from_size_and_dimensions(
+        cls, size_bytes: int, width: int, height: int
+    ) -> ImageQuality:
         """Determine quality from size and dimensions."""
         total_pixels = width * height
         bytes_per_pixel = size_bytes / total_pixels if total_pixels > 0 else 0
@@ -167,12 +169,12 @@ class ImageData:
         magic_bytes = self.data[:4]
 
         format_signatures = {
-            ImageFormat.JPEG: [b'\xff\xd8\xff'],
-            ImageFormat.JPG: [b'\xff\xd8\xff'],
-            ImageFormat.PNG: [b'\x89PNG'],
-            ImageFormat.GIF: [b'GIF8'],
-            ImageFormat.BMP: [b'BM'],
-            ImageFormat.WEBP: [b'RIFF'],  # Simplified check
+            ImageFormat.JPEG: [b"\xff\xd8\xff"],
+            ImageFormat.JPG: [b"\xff\xd8\xff"],
+            ImageFormat.PNG: [b"\x89PNG"],
+            ImageFormat.GIF: [b"GIF8"],
+            ImageFormat.BMP: [b"BM"],
+            ImageFormat.WEBP: [b"RIFF"],  # Simplified check
         }
 
         signatures = format_signatures.get(self.format, [])
@@ -180,16 +182,13 @@ class ImageData:
 
     @classmethod
     def from_base64(
-        cls,
-        base64_data: str,
-        format: ImageFormat,
-        filename: str | None = None
+        cls, base64_data: str, format: ImageFormat, filename: str | None = None
     ) -> ImageData:
         """Create ImageData from base64 encoded string."""
         try:
             # Remove data URL prefix if present
-            if base64_data.startswith('data:'):
-                base64_data = base64_data.split(',', 1)[1]
+            if base64_data.startswith("data:"):
+                base64_data = base64_data.split(",", 1)[1]
 
             data = base64.b64decode(base64_data)
             return cls(data=data, format=format, filename=filename)
@@ -199,7 +198,7 @@ class ImageData:
 
     def to_base64(self) -> str:
         """Convert image data to base64 string."""
-        return base64.b64encode(self.data).decode('utf-8')
+        return base64.b64encode(self.data).decode("utf-8")
 
     def get_data_url(self) -> str:
         """Get data URL for the image."""
@@ -227,9 +226,7 @@ class ImageData:
         """Get estimated image quality."""
         if self.dimensions:
             return ImageQuality.from_size_and_dimensions(
-                self.get_size_bytes(),
-                self.dimensions.width,
-                self.dimensions.height
+                self.get_size_bytes(), self.dimensions.width, self.dimensions.height
             )
         else:
             # Quality based on size alone
@@ -256,7 +253,11 @@ class ImageData:
 
         # Quality check
         quality = self.get_quality()
-        return quality in {ImageQuality.MEDIUM, ImageQuality.HIGH, ImageQuality.EXCELLENT}
+        return quality in {
+            ImageQuality.MEDIUM,
+            ImageQuality.HIGH,
+            ImageQuality.EXCELLENT,
+        }
 
     def get_estimated_ocr_confidence(self) -> float:
         """Get estimated OCR confidence based on image characteristics."""
@@ -298,13 +299,18 @@ class ImageData:
 
         size_mb = self.get_size_mb()
         if size_mb > 5:
-            recommendations.append("Consider compressing image to reduce processing time")
+            recommendations.append(
+                "Consider compressing image to reduce processing time"
+            )
         elif size_mb < 0.1:
-            recommendations.append("Image may be too small for accurate text recognition")
+            recommendations.append(
+                "Image may be too small for accurate text recognition"
+            )
 
-        if self.dimensions:
-            if self.dimensions.width < 300 or self.dimensions.height < 300:
-                recommendations.append("Image resolution may be too low for OCR")
+        if self.dimensions and (
+            self.dimensions.width < 300 or self.dimensions.height < 300
+        ):
+            recommendations.append("Image resolution may be too low for OCR")
 
         return recommendations
 

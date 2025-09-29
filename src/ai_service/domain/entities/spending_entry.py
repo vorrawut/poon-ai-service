@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
-import uuid
 
-# from ..events.spending_events import SpendingEntryCreated, SpendingEntryUpdated
 from ..value_objects.processing_method import ProcessingMethod
 
 if TYPE_CHECKING:
@@ -87,16 +86,7 @@ class SpendingEntry:
         """Validate spending entry invariants."""
         self._validate_business_rules()
 
-        # Emit creation event (disabled for now)
-        # if not hasattr(self, '_initialized'):
-        #     self._add_event(SpendingEntryCreated(
-        #         entry_id=self.id.value,
-        #         amount=self.amount.to_float(),
-        #         merchant=self.merchant,
-        #         category=self.category.value,
-        #         occurred_at=self.created_at
-        #     ))
-        #     object.__setattr__(self, '_initialized', True)
+        # Domain events are temporarily disabled for migration
 
     def _validate_business_rules(self) -> None:
         """Validate core business rules."""
@@ -149,17 +139,8 @@ class SpendingEntry:
             msg = f"Cannot change currency from {self.amount.currency} to {new_amount.currency}"
             raise ValueError(msg)
 
-        old_amount = self.amount
-        object.__setattr__(self, 'amount', new_amount)
-        object.__setattr__(self, 'updated_at', datetime.utcnow())
-
-        # self._add_event(SpendingEntryUpdated(
-        #     entry_id=self.id.value,
-        #     field_updated="amount",
-        #     old_value=old_amount.to_float(),
-        #     new_value=new_amount.to_float(),
-        #     occurred_at=self.updated_at
-        # ))
+        object.__setattr__(self, "amount", new_amount)
+        object.__setattr__(self, "updated_at", datetime.utcnow())
 
     def update_merchant(self, new_merchant: str) -> None:
         """Update the merchant name."""
@@ -171,34 +152,16 @@ class SpendingEntry:
             msg = f"Merchant name too long: {len(new_merchant)} characters (max 200)"
             raise ValueError(msg)
 
-        old_merchant = self.merchant
-        object.__setattr__(self, 'merchant', new_merchant.strip())
-        object.__setattr__(self, 'updated_at', datetime.utcnow())
+        object.__setattr__(self, "merchant", new_merchant.strip())
+        object.__setattr__(self, "updated_at", datetime.utcnow())
 
-        self._add_event(SpendingEntryUpdated(
-            entry_id=self.id.value,
-            field_updated="merchant",
-            old_value=old_merchant,
-            new_value=new_merchant,
-            occurred_at=self.updated_at
-        ))
-
-    def update_category(self, new_category: SpendingCategory, new_subcategory: str | None = None) -> None:
+    def update_category(
+        self, new_category: SpendingCategory, new_subcategory: str | None = None
+    ) -> None:
         """Update the spending category and subcategory."""
-        old_category = self.category
-        old_subcategory = self.subcategory
-
-        object.__setattr__(self, 'category', new_category)
-        object.__setattr__(self, 'subcategory', new_subcategory)
-        object.__setattr__(self, 'updated_at', datetime.utcnow())
-
-        self._add_event(SpendingEntryUpdated(
-            entry_id=self.id.value,
-            field_updated="category",
-            old_value=f"{old_category.value}:{old_subcategory}",
-            new_value=f"{new_category.value}:{new_subcategory}",
-            occurred_at=self.updated_at
-        ))
+        object.__setattr__(self, "category", new_category)
+        object.__setattr__(self, "subcategory", new_subcategory)
+        object.__setattr__(self, "updated_at", datetime.utcnow())
 
     def add_tag(self, tag: str) -> None:
         """Add a tag to the spending entry."""
@@ -220,8 +183,8 @@ class SpendingEntry:
             raise ValueError(msg)
 
         new_tags = [*self.tags, tag_cleaned]
-        object.__setattr__(self, 'tags', new_tags)
-        object.__setattr__(self, 'updated_at', datetime.utcnow())
+        object.__setattr__(self, "tags", new_tags)
+        object.__setattr__(self, "updated_at", datetime.utcnow())
 
     def remove_tag(self, tag: str) -> None:
         """Remove a tag from the spending entry."""
@@ -231,30 +194,20 @@ class SpendingEntry:
         if len(new_tags) == len(self.tags):
             return  # Tag not found
 
-        object.__setattr__(self, 'tags', new_tags)
-        object.__setattr__(self, 'updated_at', datetime.utcnow())
+        object.__setattr__(self, "tags", new_tags)
+        object.__setattr__(self, "updated_at", datetime.utcnow())
 
     def enhance_with_ai(
-        self,
-        confidence: ConfidenceScore,
-        processing_metadata: ProcessingMetadata
+        self, confidence: ConfidenceScore, processing_metadata: ProcessingMetadata
     ) -> None:
         """Enhance the entry with AI processing results."""
         # Only allow enhancement if current confidence is lower
         if self.confidence.value >= confidence.value:
             return
 
-        object.__setattr__(self, 'confidence', confidence)
-        object.__setattr__(self, 'processing_metadata', processing_metadata)
-        object.__setattr__(self, 'updated_at', datetime.utcnow())
-
-        self._add_event(SpendingEntryUpdated(
-            entry_id=self.id.value,
-            field_updated="ai_enhancement",
-            old_value=str(self.confidence),
-            new_value=str(confidence),
-            occurred_at=self.updated_at
-        ))
+        object.__setattr__(self, "confidence", confidence)
+        object.__setattr__(self, "processing_metadata", processing_metadata)
+        object.__setattr__(self, "updated_at", datetime.utcnow())
 
     def is_high_confidence(self) -> bool:
         """Check if the entry has high confidence."""

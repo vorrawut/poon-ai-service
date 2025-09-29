@@ -21,12 +21,12 @@ else Cache Miss
     API -> OCR: Process image
     OCR -> Tesseract: Extract text (local)
     Tesseract -> OCR: Raw text + confidence
-    
+
     alt OCR confidence < threshold
         OCR -> OpenAI: Vision API fallback
         OpenAI -> OCR: Enhanced text
     end
-    
+
     OCR -> API: OCR result
     API -> Cache: Store OCR result
 end
@@ -40,7 +40,7 @@ alt NLP confidence < threshold
     Llama -> OllamaExt: Generate enhancement
     OllamaExt -> Llama: Enhanced data
     Llama -> API: Enhanced NLP result
-    
+
     alt Llama unavailable
         API -> OpenAI: Fallback to GPT
         OpenAI -> API: Enhanced result
@@ -78,7 +78,7 @@ API -> API: Parse file format
 loop For each row
     API -> NLP: Process row data
     NLP -> API: Structured entry
-    
+
     alt AI enhancement enabled
         API -> Llama: Enhance entry
         Llama -> API: Enhanced entry

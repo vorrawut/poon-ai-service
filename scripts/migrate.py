@@ -8,8 +8,10 @@ from pathlib import Path
 # Add src to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from ai_service.infrastructure.database.sqlite_repository import SqliteSpendingRepository
 from ai_service.core.config import get_settings
+from ai_service.infrastructure.database.sqlite_repository import (
+    SqliteSpendingRepository,
+)
 
 
 async def migrate():

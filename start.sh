@@ -101,7 +101,7 @@ print_status "Checking optional dependencies..."
 if command -v tesseract >/dev/null 2>&1; then
     tesseract_version=$(tesseract --version | head -1)
     print_success "Tesseract found: $tesseract_version"
-    
+
     # Check Thai language support
     if tesseract --list-langs 2>/dev/null | grep -q "tha"; then
         print_success "Thai language support available"
@@ -137,20 +137,20 @@ mkdir -p logs
 health_check() {
     local max_attempts=30
     local attempt=1
-    
+
     print_status "Waiting for service to be ready..."
-    
+
     while [ $attempt -le $max_attempts ]; do
         if curl -s -f "http://$HOST:$PORT/health" >/dev/null 2>&1; then
             print_success "Service is healthy and ready!"
             return 0
         fi
-        
+
         echo -n "."
         sleep 1
         attempt=$((attempt + 1))
     done
-    
+
     print_error "Service failed to start within 30 seconds"
     return 1
 }
@@ -166,10 +166,10 @@ print_status "Reload: $RELOAD"
 # Determine startup command based on environment
 if [ "$ENVIRONMENT" = "production" ]; then
     print_status "Starting in production mode with Gunicorn..."
-    
+
     # Install gunicorn if not present
     pip install gunicorn uvicorn[standard]
-    
+
     # Start with Gunicorn
     exec gunicorn main:app \
         -w 4 \
@@ -184,7 +184,7 @@ if [ "$ENVIRONMENT" = "production" ]; then
         --max-requests-jitter 100
 else
     print_status "Starting in development mode with Uvicorn..."
-    
+
     # Start with Uvicorn for development
     if [ "$RELOAD" = "true" ]; then
         exec uvicorn main:app \

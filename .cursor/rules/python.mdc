@@ -130,9 +130,9 @@ service_name/
 ```
            /\
           /  \    🔺 E2E Tests (Few, Slow, Expensive)
-         /____\   
+         /____\
         /      \  🔶 Integration Tests (Some, Medium)
-       /________\ 
+       /________\
       /          \ 🔻 Unit Tests (Many, Fast, Cheap)
      /____________\
 ```
@@ -189,14 +189,14 @@ repos:
       - id: end-of-file-fixer
       - id: check-yaml
       - id: check-json
-  
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.0
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
-  
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.5.1
     hooks:

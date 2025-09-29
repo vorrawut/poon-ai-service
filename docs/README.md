@@ -9,7 +9,7 @@ This directory contains comprehensive technical documentation for the Poon AI Se
 #### 1. **System Overview** (`system-overview.puml`)
 High-level system architecture showing:
 - Frontend React components
-- AI microservice components  
+- AI microservice components
 - External service integrations
 - Data flow between systems
 - Primary vs fallback AI services

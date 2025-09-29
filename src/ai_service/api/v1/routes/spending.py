@@ -1,8 +1,8 @@
 """Spending-related API endpoints."""
 
+import structlog
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-import structlog
 
 logger = structlog.get_logger(__name__)
 router = APIRouter()
@@ -10,6 +10,7 @@ router = APIRouter()
 
 class CreateSpendingRequest(BaseModel):
     """Request model for creating spending entry."""
+
     amount: float
     merchant: str
     description: str
@@ -19,6 +20,7 @@ class CreateSpendingRequest(BaseModel):
 
 class ProcessTextRequest(BaseModel):
     """Request model for processing text."""
+
     text: str
     language: str = "en"
 
@@ -27,7 +29,10 @@ class ProcessTextRequest(BaseModel):
 async def get_spending_entries(request: Request) -> dict:
     """Get all spending entries."""
     try:
-        if not hasattr(request.app.state, 'spending_repository') or not request.app.state.spending_repository:
+        if (
+            not hasattr(request.app.state, "spending_repository")
+            or not request.app.state.spending_repository
+        ):
             raise HTTPException(status_code=503, detail="Repository not available")
 
         repository = request.app.state.spending_repository
@@ -37,18 +42,17 @@ async def get_spending_entries(request: Request) -> dict:
         return {
             "entries": [entry.to_dict() for entry in entries],
             "total_count": total_count,
-            "status": "success"
+            "status": "success",
         }
 
     except Exception as e:
         logger.error("Failed to get spending entries", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/")
 async def create_spending_entry(
-    request: Request,
-    spending_data: CreateSpendingRequest
+    request: Request, spending_data: CreateSpendingRequest
 ) -> dict:
     """Create a new spending entry."""
     try:
@@ -59,7 +63,10 @@ async def create_spending_entry(
             CreateSpendingEntryCommandHandler,
         )
 
-        if not hasattr(request.app.state, 'spending_repository') or not request.app.state.spending_repository:
+        if (
+            not hasattr(request.app.state, "spending_repository")
+            or not request.app.state.spending_repository
+        ):
             raise HTTPException(status_code=503, detail="Repository not available")
 
         repository = request.app.state.spending_repository
@@ -72,7 +79,7 @@ async def create_spending_entry(
             description=spending_data.description,
             transaction_date=datetime.utcnow(),
             category=spending_data.category,
-            payment_method=spending_data.payment_method
+            payment_method=spending_data.payment_method,
         )
 
         # Handle command
@@ -85,36 +92,37 @@ async def create_spending_entry(
         return {
             "message": result.message,
             "entry_id": result.data["entry_id"],
-            "status": "success"
+            "status": "success",
         }
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error("Failed to create spending entry", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.post("/process/text")
-async def process_text(
-    request: Request,
-    text_data: ProcessTextRequest
-) -> dict:
+async def process_text(request: Request, text_data: ProcessTextRequest) -> dict:
     """Process natural language text into spending entry."""
     try:
-        if not hasattr(request.app.state, 'llama_client') or not request.app.state.llama_client:
+        if (
+            not hasattr(request.app.state, "llama_client")
+            or not request.app.state.llama_client
+        ):
             raise HTTPException(status_code=503, detail="AI service not available")
 
         llama_client = request.app.state.llama_client
 
         # Use Llama to parse the text
         result = await llama_client.parse_spending_text(
-            text=text_data.text,
-            language=text_data.language
+            text=text_data.text, language=text_data.language
         )
 
         if not result["success"]:
-            raise HTTPException(status_code=400, detail=result.get("error", "Failed to process text"))
+            raise HTTPException(
+                status_code=400, detail=result.get("error", "Failed to process text")
+            )
 
         parsed_data = result["parsed_data"]
 
@@ -138,7 +146,7 @@ async def process_text(
             payment_method=parsed_data.get("payment_method", "Cash"),
             confidence=parsed_data.get("confidence", 0.7),
             processing_method="llama_direct",
-            raw_text=text_data.text
+            raw_text=text_data.text,
         )
 
         handler = CreateSpendingEntryCommandHandler(repository)
@@ -153,11 +161,11 @@ async def process_text(
             "parsed_data": parsed_data,
             "confidence": parsed_data.get("confidence", 0.7),
             "processing_time_ms": result.get("processing_time_ms", 0),
-            "status": "success"
+            "status": "success",
         }
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error("Failed to process text", error=str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e

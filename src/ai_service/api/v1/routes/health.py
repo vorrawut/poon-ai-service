@@ -1,7 +1,7 @@
 """Health check endpoints."""
 
-from fastapi import APIRouter, Depends
 import structlog
+from fastapi import APIRouter, Depends, Request
 
 from ....core.config import Settings, get_settings
 
@@ -10,9 +10,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def health_check(
-    settings: Settings = Depends(get_settings)
-) -> dict:
+async def health_check(settings: Settings = Depends(get_settings)) -> dict:
     """Basic health check endpoint."""
     return {
         "status": "healthy",
@@ -24,8 +22,7 @@ async def health_check(
 
 @router.get("/detailed")
 async def detailed_health_check(
-    request: Request,
-    settings: Settings = Depends(get_settings)
+    request: Request, settings: Settings = Depends(get_settings)
 ) -> dict:
     """Detailed health check with service dependencies."""
     health_status = {
@@ -39,39 +36,57 @@ async def detailed_health_check(
 
     # Check database
     try:
-        if hasattr(request.app.state, 'spending_repository') and request.app.state.spending_repository:
+        if (
+            hasattr(request.app.state, "spending_repository")
+            and request.app.state.spending_repository
+        ):
             await request.app.state.spending_repository.count_total()
-            health_status["dependencies"]["database"] = {"status": "healthy", "type": "sqlite"}
+            health_status["dependencies"]["database"] = {
+                "status": "healthy",
+                "type": "sqlite",
+            }
         else:
-            health_status["dependencies"]["database"] = {"status": "not_initialized", "type": "sqlite"}
+            health_status["dependencies"]["database"] = {
+                "status": "not_initialized",
+                "type": "sqlite",
+            }
     except Exception as e:
-        health_status["dependencies"]["database"] = {"status": "unhealthy", "error": str(e)}
+        health_status["dependencies"]["database"] = {
+            "status": "unhealthy",
+            "error": str(e),
+        }
         health_status["status"] = "degraded"
 
     # Check Llama client
     try:
-        if hasattr(request.app.state, 'llama_client') and request.app.state.llama_client:
+        if (
+            hasattr(request.app.state, "llama_client")
+            and request.app.state.llama_client
+        ):
             is_available = await request.app.state.llama_client.health_check()
             health_status["dependencies"]["llama"] = {
                 "status": "healthy" if is_available else "unavailable",
                 "model": settings.llama_model,
-                "url": settings.get_ollama_url()
+                "url": settings.get_ollama_url(),
             }
             if not is_available:
                 health_status["status"] = "degraded"
         else:
             health_status["dependencies"]["llama"] = {"status": "disabled"}
     except Exception as e:
-        health_status["dependencies"]["llama"] = {"status": "unhealthy", "error": str(e)}
+        health_status["dependencies"]["llama"] = {
+            "status": "unhealthy",
+            "error": str(e),
+        }
         health_status["status"] = "degraded"
 
     # Check OCR client
     try:
-        if hasattr(request.app.state, 'ocr_client') and request.app.state.ocr_client:
+        if hasattr(request.app.state, "ocr_client") and request.app.state.ocr_client:
             is_available = request.app.state.ocr_client.is_available()
             health_status["dependencies"]["ocr"] = {
                 "status": "healthy" if is_available else "unavailable",
-                "type": "tesseract"
+                "type": "tesseract",
             }
             if not is_available:
                 health_status["status"] = "degraded"
@@ -91,13 +106,13 @@ async def readiness_check(request: Request) -> dict:
     ready = True
 
     # Database must be ready
-    if not (hasattr(request.app.state, 'spending_repository') and request.app.state.spending_repository):
+    if not (
+        hasattr(request.app.state, "spending_repository")
+        and request.app.state.spending_repository
+    ):
         ready = False
 
-    return {
-        "status": "ready" if ready else "not_ready",
-        "ready": ready
-    }
+    return {"status": "ready" if ready else "not_ready", "ready": ready}
 
 
 @router.get("/live")

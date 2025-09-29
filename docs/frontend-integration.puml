@@ -12,7 +12,7 @@ package "React Frontend Components" {
     Renders input method selection
     Handles save status and animations
   }
-  
+
   class "PhotoOCRInput" {
     +onSave: (entry) => void
     +onProcessingUpdate: (msg) => void
@@ -23,7 +23,7 @@ package "React Frontend Components" {
     --
     API: POST /process/receipt
   }
-  
+
   class "VoiceInput" {
     +onSave: (entry) => void
     +onProcessingUpdate: (msg) => void
@@ -34,7 +34,7 @@ package "React Frontend Components" {
     --
     API: POST /process/text
   }
-  
+
   class "ChatTextInput" {
     +onSave: (entry) => void
     +onProcessingUpdate: (msg) => void
@@ -44,7 +44,7 @@ package "React Frontend Components" {
     --
     API: POST /process/text
   }
-  
+
   class "FileUploadInput" {
     +onSave: (entry) => void
     +onProcessingUpdate: (msg) => void
@@ -55,7 +55,7 @@ package "React Frontend Components" {
     --
     API: POST /process/batch
   }
-  
+
   class "ManualFormInput" {
     +onSave: (entry) => void
     +onProcessingUpdate: (msg) => void
@@ -65,7 +65,7 @@ package "React Frontend Components" {
     --
     Direct save (no AI processing)
   }
-  
+
   class "QuickTemplateInput" {
     +onSave: (entry) => void
     +onProcessingUpdate: (msg) => void
@@ -86,7 +86,7 @@ package "AI Service Endpoints" {
     --
     OCR + NLP + AI Pipeline
   }
-  
+
   class "Text Processing" as TextAPI {
     POST /process/text
     --
@@ -95,7 +95,7 @@ package "AI Service Endpoints" {
     --
     NLP + AI Enhancement
   }
-  
+
   class "Batch Processing" as BatchAPI {
     POST /process/batch
     --
@@ -104,7 +104,7 @@ package "AI Service Endpoints" {
     --
     Bulk processing with AI
   }
-  
+
   class "Health Check" as HealthAPI {
     GET /health
     --
@@ -119,7 +119,7 @@ package "Processing States" {
   state "Processing" as Processing
   state "Success" as Success
   state "Error" as Error
-  
+
   Idle --> Processing : User action
   Processing --> Success : API success
   Processing --> Error : API error

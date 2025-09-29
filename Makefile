@@ -32,7 +32,7 @@ ENV ?= development
 ifeq ($(ENV),production)
     POETRY_OPTS := --only=main --no-dev
 else
-    POETRY_OPTS := 
+    POETRY_OPTS :=
 endif
 
 help: ## 📋 Show this help message
