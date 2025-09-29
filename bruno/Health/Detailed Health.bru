@@ -1,0 +1,35 @@
+meta {
+  name: Detailed Health Check
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/health
+  body: none
+  auth: none
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response has detailed services info", function() {
+    const body = res.getBody();
+    expect(body.services).to.be.an("object");
+    expect(body.services.database).to.be.a("string");
+    expect(body.services.llama).to.be.a("string");
+  });
+  
+  test("Response has feature flags", function() {
+    const body = res.getBody();
+    expect(body.feature_flags).to.be.an("object");
+  });
+  
+  test("Response has environment info", function() {
+    const body = res.getBody();
+    expect(body.environment).to.be.a("string");
+    expect(body.debug).to.be.a("boolean");
+  });
+}

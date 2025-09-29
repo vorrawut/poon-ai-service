@@ -5,5 +5,12 @@
   "ignore": [
     "node_modules",
     ".git"
-  ]
+  ],
+  "preRequestScript": "",
+  "postRequestScript": "",
+  "environmentVariables": {},
+  "folderLevelScript": {
+    "pre-request": "",
+    "post-response": ""
+  }
 }

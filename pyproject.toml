@@ -1,0 +1,174 @@
+[tool.poetry]
+name = "poon-ai-service"
+version = "1.0.0"
+description = "AI-powered spending analysis microservice with local Llama4 processing"
+authors = ["Poon Team <team@poon.ai>"]
+readme = "README.md"
+packages = [{include = "ai_service", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.116.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0"}
+pydantic = "^2.5.0"
+pydantic-settings = "^2.1.0"
+aiohttp = "^3.9.1"
+aiosqlite = "^0.19.0"
+python-multipart = "^0.0.6"
+aiofiles = "^23.2.1"
+pillow = "^10.1.0"
+pytesseract = "^0.3.10"
+opencv-python = "^4.8.1.78"
+numpy = "^1.25.2"
+redis = "^5.0.1"
+python-dotenv = "^1.0.0"
+openai = "^1.3.7"
+structlog = "^23.2.0"
+prometheus-client = "^0.19.0"
+httpx = "^0.25.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.0"
+pytest-asyncio = "^0.21.0"
+factory-boy = "^3.3.0"
+faker = "^20.1.0"
+ruff = "^0.1.0"
+mypy = "^1.5.1"
+pre-commit = "^3.5.0"
+bandit = "^1.7.5"
+safety = "^2.3.0"
+
+[tool.poetry.group.test.dependencies]
+pytest-xdist = "^3.3.1"
+pytest-benchmark = "^4.0.0"
+pytest-html = "^4.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Ruff configuration
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E", "W",   # pycodestyle
+    "F",        # pyflakes
+    "I",        # isort
+    "B",        # flake8-bugbear
+    "C4",       # flake8-comprehensions
+    "UP",       # pyupgrade
+    "N",        # pep8-naming
+    "S",        # flake8-bandit
+    "RUF",      # Ruff-specific rules
+    "PT",       # flake8-pytest-style
+    "SIM",      # flake8-simplify
+    "TCH",      # flake8-type-checking
+    "ARG",      # flake8-unused-arguments
+    "ERA",      # eradicate (commented-out code)
+]
+ignore = [
+    "S101",     # Use of assert (OK for tests)
+    "S311",     # Standard pseudo-random generators are not suitable for security/cryptographic purposes
+    "E501",     # Line too long (handled by formatter)
+    "B008",     # Do not perform function calls in argument defaults
+    "N818",     # Exception name should be named with an Error suffix
+]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+]
+
+[tool.ruff.per-file-ignores]
+"tests/**/*.py" = ["S101", "ARG001", "ARG002"]
+"**/conftest.py" = ["ARG001"]
+
+[tool.ruff.isort]
+known-first-party = ["ai_service"]
+force-sort-within-sections = true
+
+[tool.ruff.flake8-type-checking]
+strict = true
+
+# MyPy configuration
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pytesseract.*",
+    "cv2.*",
+    "PIL.*",
+    "prometheus_client.*",
+]
+ignore_missing_imports = true
+
+# Pytest configuration
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "-ra",
+    "--cov=ai_service",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml",
+    "--cov-fail-under=80",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Coverage configuration
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "tests/*",
+    "*/conftest.py",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

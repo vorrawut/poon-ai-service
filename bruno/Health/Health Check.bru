@@ -6,28 +6,28 @@ meta {
 
 get {
   url: {{baseUrl}}/health
-}
-
-assert {
-  res.status: eq 200
-  res.body.status: eq healthy
-  res.body.services.ocr: eq ready
-  res.body.services.nlp: eq ready
+  body: none
+  auth: none
 }
 
 tests {
-  test("Response should be healthy", function() {
-    expect(res.status).to.equal(200);
-    expect(res.body.status).to.equal("healthy");
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
   });
-
-  test("All core services should be ready", function() {
-    expect(res.body.services.ocr).to.equal("ready");
-    expect(res.body.services.nlp).to.equal("ready");
-    expect(res.body.services.cache).to.equal("ready");
+  
+  test("Response has status field", function() {
+    expect(res.getBody().status).to.equal("healthy");
   });
-
-  test("Should have timestamp", function() {
-    expect(res.body.timestamp).to.be.a("string");
+  
+  test("Response has service name", function() {
+    expect(res.getBody().service).to.be.a("string");
+  });
+  
+  test("Response has version", function() {
+    expect(res.getBody().version).to.be.a("string");
+  });
+  
+  test("Response time is reasonable", function() {
+    expect(res.getResponseTime()).to.be.below(1000);
   });
 }

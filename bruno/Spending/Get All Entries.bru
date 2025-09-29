@@ -1,0 +1,38 @@
+meta {
+  name: Get All Spending Entries
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/{{apiVersion}}/spending
+  body: none
+  auth: none
+}
+
+params:query {
+  limit: 10
+  offset: 0
+}
+
+tests {
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("Response is an array", function() {
+    expect(res.getBody()).to.be.an("array");
+  });
+  
+  test("Each entry has required fields", function() {
+    const entries = res.getBody();
+    if (entries.length > 0) {
+      const entry = entries[0];
+      expect(entry.id).to.be.a("string");
+      expect(entry.amount).to.be.a("number");
+      expect(entry.merchant).to.be.a("string");
+      expect(entry.category).to.be.a("string");
+      expect(entry.transaction_date).to.be.a("string");
+    }
+  });
+}

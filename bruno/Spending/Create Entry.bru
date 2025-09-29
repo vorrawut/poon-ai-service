@@ -1,0 +1,48 @@
+meta {
+  name: Create Spending Entry
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/{{apiVersion}}/spending
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: {{contentType}}
+}
+
+body:json {
+  {
+    "amount": 120.50,
+    "currency": "THB",
+    "merchant": "Starbucks",
+    "category": "Food & Dining",
+    "description": "Coffee and pastry",
+    "payment_method": "Credit Card",
+    "transaction_date": "2024-01-15T10:30:00Z",
+    "raw_text": "Coffee 120.50 at Starbucks with credit card"
+  }
+}
+
+tests {
+  test("Status code is 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  
+  test("Response has created entry", function() {
+    const body = res.getBody();
+    expect(body.id).to.be.a("string");
+    expect(body.amount).to.equal(120.50);
+    expect(body.merchant).to.equal("Starbucks");
+    expect(body.category).to.equal("Food & Dining");
+  });
+  
+  test("Entry has proper timestamps", function() {
+    const body = res.getBody();
+    expect(body.created_at).to.be.a("string");
+    expect(body.updated_at).to.be.a("string");
+  });
+}
