@@ -1,209 +1,454 @@
 ---
 alwaysApply: true
 ---
-🐍 Python Microservice Development Rules & Project Structure
-🏗️ Directory Layout (Service-Level)
 
-Each service is self-contained but follows the same layout:
+# 🐍 Python Microservice Development Rules & Standards
 
+## 🎯 Core Principles
+
+### 1. **Domain-Driven Design (DDD)**
+- Each service owns a single business domain/bounded context
+- Use ubiquitous language throughout the codebase
+- Domain models should reflect business concepts, not database tables
+- Aggregate roots control consistency boundaries
+
+### 2. **Clean Architecture**
+- Dependencies point inward (Infrastructure → Application → Domain)
+- Business logic is framework-agnostic
+- External concerns (DB, HTTP, messaging) are pluggable
+- High cohesion within layers, loose coupling between layers
+
+### 3. **Service Independence**
+- Each service is deployable, testable, and observable independently
+- No shared databases between services
+- Communicate via well-defined APIs and events
+- Own your data, own your destiny
+
+## 🏗️ Enhanced Project Structure
+
+```
 service_name/
 ├── src/
-│   ├── service_name/            # Main application package
-│   │   ├── api/                 # FastAPI/Flask/Django views/controllers
-│   │   ├── models/              # Pydantic schemas & ORM entities
-│   │   ├── services/            # Business logic (pure functions if possible)
-│   │   ├── repositories/        # Data access (DB, cache, external services)
-│   │   ├── events/              # Kafka/NATS/PubSub consumers & producers
-│   │   ├── core/                # Infra: db, cache, auth, config, errors
-│   │   ├── common/              # Shared utils (logging, middleware)
+│   ├── service_name/
+│   │   ├── api/                    # 🌐 HTTP Interface Layer
+│   │   │   ├── v1/                 # API versioning
+│   │   │   │   ├── routes/         # FastAPI route definitions
+│   │   │   │   ├── schemas/        # Request/Response models
+│   │   │   │   └── dependencies/   # Dependency injection
+│   │   │   ├── middleware/         # Custom middleware
+│   │   │   └── exceptions/         # API exception handlers
+│   │   ├── domain/                 # 🧠 Business Logic (Core)
+│   │   │   ├── entities/           # Domain entities
+│   │   │   ├── value_objects/      # Immutable value types
+│   │   │   ├── aggregates/         # Aggregate roots
+│   │   │   ├── services/           # Domain services
+│   │   │   ├── repositories/       # Repository interfaces
+│   │   │   └── events/             # Domain events
+│   │   ├── application/            # 🎯 Use Cases & Application Services
+│   │   │   ├── commands/           # Command handlers (CQRS)
+│   │   │   ├── queries/            # Query handlers (CQRS)
+│   │   │   ├── services/           # Application services
+│   │   │   └── dto/                # Data Transfer Objects
+│   │   ├── infrastructure/         # 🔧 External Concerns
+│   │   │   ├── database/           # DB implementations
+│   │   │   ├── messaging/          # Event bus, Kafka, RabbitMQ
+│   │   │   ├── external_apis/      # Third-party API clients
+│   │   │   ├── cache/              # Redis, Memcached
+│   │   │   └── storage/            # File storage, S3
+│   │   ├── core/                   # 🛠️ Cross-cutting Concerns
+│   │   │   ├── config/             # Configuration management
+│   │   │   ├── logging/            # Structured logging
+│   │   │   ├── security/           # Auth, encryption
+│   │   │   ├── monitoring/         # Metrics, health checks
+│   │   │   ├── errors/             # Custom exceptions
+│   │   │   └── utils/              # Generic utilities
 │   │   └── __init__.py
-│   └── main.py                  # Service entrypoint
-├── tests/                       # Unit & integration tests
-│   ├── conftest.py
-│   └── features/
-├── bruno/                       # Bruno API collections for this service
-│   ├── collections/
-│   └── environments/
-├── docs/                        # Documentation
-│   ├── puml/                   # PlantUML architecture & sequence diagrams
-│   └── openapi.json             # Exported OpenAPI spec (must be synced)
-├── scripts/                     # DevOps & helper scripts
-├── Dockerfile                   # Container definition
-├── pyproject.toml               # Build & dependency config
-├── requirements.txt             # Pinned deps (if lock needed)
-└── README.md
-
-
-🔑 Rules:
-
-Each service owns its data & APIs (no cross-service DB calls).
-
-Bruno tests (/bruno) must be updated with every API change.
-
-Architecture diagrams (/docs/puml) must reflect service-level flows.
-
-Services must stay independent (deployable, testable, observable on their own).
-
-📦 Code Structure (Inside Each Service)
-1. api/
-
-Defines request/response contracts (FastAPI routes, Flask blueprints, etc.)
-
-Input validation via Pydantic
-
-Converts transport → domain model
-
-2. models/
-
-Domain entities & schemas
-
-SQLAlchemy/Pydantic models only
-
-Rule: No business logic here
-
-3. services/
-
-Pure business logic
-
-Calls repositories/events, orchestrates flows
-
-Unit tested in isolation
-
-4. repositories/
-
-DB & cache access, external service clients
-
-Each repository handles a single external dependency
-
-Rule: No business logic inside repositories
-
-5. events/
-
-Kafka/PubSub/NATS producers & consumers
-
-Event schema defined here
-
-Tests must validate serialization
-
-6. core/
-
-Infrastructure: config, logging, DB init, error handling
-
-Rule: No domain-specific code here
-
-7. common/
-
-Shared helpers within the service (e.g. response formatter, retry utils)
-
-Rule: Never depend on other services’ common/
-
-🧪 Testing Strategy
-1. Unit Tests (/tests/features/)
-
-Mirror src/service_name structure
-
-Test services, repositories, events in isolation
-
-Mocks for external dependencies
-
-2. Integration Tests
-
-Spin up DB/cache locally with Docker (via pytest fixtures)
-
-Cover repository + API contracts
-
-3. API Tests (Bruno)
-
-Live in /bruno
-
-Required for all endpoints before merge
-
-Must be updated when API changes
-
-4. Contract Tests
-
-Ensure producer/consumer events follow agreed schema
-
-Validate against shared schema repo (if exists)
-
-📋 Build & Quality Rules
-
-Code style → ruff (or black if you prefer formatting only)
-
-Type checking → mypy (mandatory for services & models)
-
-Linting → fail CI on errors
-
-Tests → pytest --cov must pass before merge
-
-API contracts → update Bruno & export OpenAPI spec to /docs
-
-🚀 CI/CD Workflow (Mandatory Checks)
-
-Pre-commit hooks
-
-Run ruff, mypy, and pytest -q
-
-Block commit if failed
-
-CI pipeline
-
-Install deps (poetry install or pip)
-
-Run unit + integration tests
-
-Validate Bruno collections against local service
-
-Export OpenAPI spec & validate docs consistency
-
-CD pipeline
-
-Build & push Docker image
-
-Run smoke tests (health check, key endpoints)
-
-Deploy via Helm/K8s
-
-🔒 Security & Observability
-
-Secrets → env vars only (use Vault or Secret Manager in prod)
-
-Auth → implement in core/middleware (JWT/OAuth2)
-
-Logging → JSON structured logs (logfmt)
-
-Tracing → OpenTelemetry instrumentation required
-
-Metrics → Prometheus/Grafana exporters (per service)
-
-Error handling → centralized in core/errors
-
-📁 Example Microservice Layout
-payments-service/
-├── src/payments/
-│   ├── api/             # FastAPI routes: POST /charge, GET /status
-│   ├── models/          # ChargeRequest, ChargeResponse, PaymentRecord
-│   ├── services/        # PaymentService (business rules)
-│   ├── repositories/    # PaymentRepo (DB), GatewayClient (external API)
-│   ├── events/          # Kafka consumers/producers
-│   ├── core/            # db.py, config.py, errors.py, logging.py
-│   ├── common/          # small helpers
-│   └── __init__.py
-├── tests/               # pytest unit & integration
-├── bruno/               # Bruno tests for /charge & /status
-├── docs/puml/           # Sequence diagrams for payment flows
-├── Dockerfile
-└── pyproject.toml
-
-
-⚡ This setup reflects best practices for Python microservices:
-
-Clear service boundaries
-
-Clean architecture separation (api → service → repository → infra)
-
-Testing discipline (unit + integration + Bruno + contracts)
-
-Observability & CI/CD baked in
-
-Docs & API tests required for every change
+│   └── main.py                     # 🚀 Application entrypoint
+├── tests/                          # 🧪 Comprehensive Test Suite
+│   ├── unit/                       # Fast, isolated tests
+│   ├── integration/                # Service integration tests
+│   ├── e2e/                        # End-to-end scenarios
+│   ├── fixtures/                   # Test data and factories
+│   └── conftest.py                 # Pytest configuration
+├── bruno/                          # 📡 API Testing & Documentation
+├── docs/                           # 📚 Documentation
+├── scripts/                        # 🛠️ Automation Scripts
+├── .github/                        # 🔄 CI/CD Configuration
+├── docker/                         # 🐳 Container Configuration
+├── pyproject.toml                  # 📦 Project Configuration
+├── poetry.lock                     # 🔒 Dependency Lock File
+├── .pre-commit-config.yaml         # 🔍 Pre-commit Hooks
+├── .env.example                    # 🔐 Environment Template
+└── README.md                       # 📖 Project Documentation
+```
+
+## 📋 Layer Responsibilities
+
+### 🌐 **API Layer** (`api/`)
+- **Purpose**: HTTP interface and transport concerns
+- **Rules**:
+  - Only handle HTTP-specific logic (routing, serialization, auth)
+  - Validate input using Pydantic models
+  - Transform DTOs ↔ Domain models
+  - Handle HTTP status codes and responses
+  - Never contain business logic
+- **Dependencies**: Application layer only
+
+### 🧠 **Domain Layer** (`domain/`)
+- **Purpose**: Core business logic and rules
+- **Rules**:
+  - Framework-agnostic pure Python
+  - Contains business invariants and validation
+  - Defines repository interfaces (not implementations)
+  - Emits domain events for side effects
+  - No external dependencies (DB, HTTP, etc.)
+- **Dependencies**: None (pure business logic)
+
+### 🎯 **Application Layer** (`application/`)
+- **Purpose**: Use cases and application workflows
+- **Rules**:
+  - Orchestrates domain objects
+  - Handles cross-cutting concerns (transactions, events)
+  - Implements CQRS pattern (commands/queries)
+  - Coordinates multiple repositories
+  - Maps between domain and DTOs
+- **Dependencies**: Domain layer only
+
+### 🔧 **Infrastructure Layer** (`infrastructure/`)
+- **Purpose**: External system implementations
+- **Rules**:
+  - Implements domain repository interfaces
+  - Handles database, messaging, external APIs
+  - Contains framework-specific code
+  - Manages connection pooling, retries, timeouts
+  - No business logic allowed
+- **Dependencies**: Domain and Application layers
+
+## 🧪 Testing Strategy
+
+### **Test Pyramid Structure**
+```
+           /\
+          /  \    🔺 E2E Tests (Few, Slow, Expensive)
+         /____\   
+        /      \  🔶 Integration Tests (Some, Medium)
+       /________\ 
+      /          \ 🔻 Unit Tests (Many, Fast, Cheap)
+     /____________\
+```
+
+### **Testing Guidelines**
+- **Unit Tests**: 90%+ coverage for domain/application layers
+- **Integration Tests**: Repository implementations, API endpoints
+- **E2E Tests**: Critical user journeys only
+- **Contract Tests**: API compatibility between services
+
+## 🔍 Code Quality Standards
+
+### **Linting & Formatting**
+```toml
+# pyproject.toml
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+select = [
+    "E", "W",  # pycodestyle
+    "F",       # pyflakes
+    "I",       # isort
+    "B",       # flake8-bugbear
+    "C4",      # flake8-comprehensions
+    "UP",      # pyupgrade
+    "N",       # pep8-naming
+    "S",       # flake8-bandit
+]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+```
+
+### **Type Checking Requirements**
+- 100% type coverage for public APIs
+- Use typing.Protocol for interfaces
+- Leverage generics for reusable code
+- Complete type annotations required
+
+## 🚀 Development Workflow
+
+### **Pre-commit Hooks**
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+  
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+  
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-all]
+```
+
+### **CI/CD Pipeline**
+1. **Continuous Integration**
+   - Install dependencies (Poetry)
+   - Run linting (Ruff, MyPy)
+   - Execute test suite (pytest with coverage)
+   - Security scanning (Bandit, Safety)
+   - Build Docker image
+   - Generate OpenAPI spec
+
+2. **Continuous Deployment**
+   - Deploy to staging environment
+   - Run smoke tests
+   - Deploy to production (blue-green)
+   - Monitor deployment health
+
+## 🔒 Security & Observability
+
+### **Security Standards**
+- **Authentication**: JWT with proper validation
+- **Authorization**: Role-based access control (RBAC)
+- **Input validation**: Pydantic models with constraints
+- **Secrets management**: Environment variables only
+- **SQL injection**: Use parameterized queries
+- **HTTPS**: TLS 1.3 minimum in production
+
+### **Observability Stack**
+```python
+# Structured logging
+import structlog
+logger = structlog.get_logger()
+logger.info("User action", user_id=123, action="login")
+
+# Metrics
+from prometheus_client import Counter, Histogram
+REQUEST_COUNT = Counter('http_requests_total', 'Total requests')
+REQUEST_DURATION = Histogram('http_request_duration_seconds', 'Request duration')
+
+# Tracing
+from opentelemetry import trace
+tracer = trace.get_tracer(__name__)
+with tracer.start_as_current_span("process_payment") as span:
+    span.set_attribute("payment.amount", amount)
+```
+
+### **Health Checks**
+```python
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow(),
+        "version": app.version,
+        "dependencies": {
+            "database": await check_database(),
+            "redis": await check_redis(),
+            "external_api": await check_external_api()
+        }
+    }
+```
+
+## 📦 Dependency Management
+
+### **Poetry Configuration**
+```toml
+[tool.poetry]
+name = "service-name"
+version = "0.1.0"
+description = "Microservice description"
+authors = ["Team <team@company.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.104.0"
+pydantic = "^2.5.0"
+sqlalchemy = "^2.0.0"
+alembic = "^1.12.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+pytest-mock = "^3.11.0"
+factory-boy = "^3.3.0"
+httpx = "^0.25.0"
+```
+
+## 🐳 Containerization
+
+### **Multi-stage Dockerfile**
+```dockerfile
+FROM python:3.11-slim as base
+WORKDIR /app
+RUN pip install poetry
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.create false
+RUN poetry install --only=main --no-dev
+
+FROM base as development
+RUN poetry install
+COPY . .
+CMD ["uvicorn", "main:app", "--reload", "--host", "0.0.0.0"]
+
+FROM base as production
+COPY src/ ./src/
+COPY main.py ./
+USER 1000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+## 📈 Performance Guidelines
+
+### **Database Optimization**
+- Use connection pooling (SQLAlchemy)
+- Implement proper indexing strategy
+- Use read replicas for queries
+- Cache frequently accessed data (Redis)
+- Monitor query performance
+
+### **API Performance**
+- Implement response caching
+- Use async/await for I/O operations
+- Implement rate limiting
+- Compress responses (gzip)
+- Use CDN for static assets
+
+## 🔄 Event-Driven Architecture
+
+### **Domain Events**
+```python
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Dict
+
+@dataclass(frozen=True)
+class DomainEvent:
+    event_id: str
+    occurred_at: datetime
+    event_type: str
+    aggregate_id: str
+    event_data: Dict[str, Any]
+    version: int = 1
+
+@dataclass(frozen=True)
+class UserRegistered(DomainEvent):
+    event_type: str = "user.registered"
+```
+
+### **Event Handlers**
+```python
+from typing import Protocol
+
+class EventHandler(Protocol):
+    async def handle(self, event: DomainEvent) -> None: ...
+
+class SendWelcomeEmailHandler:
+    async def handle(self, event: UserRegistered) -> None:
+        # Send welcome email logic
+        pass
+```
+
+## 🎯 Best Practices Checklist
+
+### **Code Quality**
+- [ ] All public APIs have type hints
+- [ ] All functions have docstrings
+- [ ] No business logic in API layer
+- [ ] Repository pattern for data access
+- [ ] Domain events for side effects
+- [ ] Proper error handling and logging
+- [ ] Input validation at boundaries
+
+### **Testing**
+- [ ] Unit tests for all business logic
+- [ ] Integration tests for repositories
+- [ ] API tests for all endpoints
+- [ ] Test coverage > 90%
+- [ ] Tests run in < 5 minutes
+- [ ] No flaky tests
+
+### **Security**
+- [ ] Input validation on all endpoints
+- [ ] Authentication on protected routes
+- [ ] Authorization checks implemented
+- [ ] Secrets in environment variables
+- [ ] SQL injection prevention
+- [ ] Rate limiting configured
+
+### **Observability**
+- [ ] Structured logging implemented
+- [ ] Metrics collection active
+- [ ] Distributed tracing enabled
+- [ ] Health checks available
+- [ ] Error monitoring configured
+- [ ] Performance monitoring active
+
+### **Documentation**
+- [ ] README with setup instructions
+- [ ] API documentation generated
+- [ ] Architecture diagrams updated
+- [ ] Runbooks for operations
+- [ ] Changelog maintained
+- [ ] Bruno tests updated
+
+## 🚨 Anti-Patterns to Avoid
+
+### **Architectural Anti-Patterns**
+- ❌ **God Services**: Services that do everything
+- ❌ **Chatty Interfaces**: Too many small API calls
+- ❌ **Shared Databases**: Multiple services accessing same DB
+- ❌ **Distributed Monolith**: Services too tightly coupled
+- ❌ **Data Inconsistency**: Not handling eventual consistency
+
+### **Code Anti-Patterns**
+- ❌ **Anemic Domain Models**: Models with only getters/setters
+- ❌ **Transaction Script**: All logic in service methods
+- ❌ **Magic Numbers**: Hardcoded values without constants
+- ❌ **Long Parameter Lists**: Methods with too many parameters
+- ❌ **Feature Envy**: Classes using other classes' data too much
+
+### **Testing Anti-Patterns**
+- ❌ **Test Interdependence**: Tests that depend on each other
+- ❌ **Slow Tests**: Test suite takes > 10 minutes
+- ❌ **Flaky Tests**: Tests that sometimes fail randomly
+- ❌ **Testing Implementation**: Testing private methods
+- ❌ **Mock Heavy**: Mocking everything including value objects
+
+## 🎉 Success Metrics
+
+### **Development Velocity**
+- Feature delivery time
+- Bug fix time
+- Code review cycle time
+- Deployment frequency
+
+### **Quality Metrics**
+- Test coverage percentage
+- Bug escape rate
+- Technical debt ratio
+- Code complexity scores
+
+### **Operational Metrics**
+- Service availability (99.9%+)
+- Response time (p95 < 200ms)
+- Error rate (< 0.1%)
+- Recovery time (< 5 minutes)
+
+---
+
+**Remember**: These rules are guidelines, not dogma. Adapt them to your specific context while maintaining the core principles of clean architecture, testability, and maintainability.

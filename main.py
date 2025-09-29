@@ -496,6 +496,155 @@ async def normalize_merchant_name(name: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+# Database Endpoints
+@app.post("/spending/store")
+async def store_spending_entry(entry: SpendingEntry):
+    """Store a spending entry in the database"""
+    try:
+        success = await services['database'].store_spending_entry(entry)
+        if success:
+            return {"success": True, "message": "Entry stored successfully", "id": entry.id}
+        else:
+            raise HTTPException(status_code=500, detail="Failed to store entry")
+    except Exception as e:
+        logger.error(f"❌ Failed to store spending entry: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Storage failed: {str(e)}")
+
+@app.get("/spending/entries")
+async def get_spending_entries(
+    limit: int = 100,
+    offset: int = 0,
+    category: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None
+):
+    """Get spending entries with filtering"""
+    try:
+        entries = await services['database'].get_spending_entries(
+            limit=limit,
+            offset=offset,
+            category=category,
+            date_from=date_from,
+            date_to=date_to
+        )
+        return {"entries": entries, "count": len(entries)}
+    except Exception as e:
+        logger.error(f"❌ Failed to get spending entries: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Retrieval failed: {str(e)}")
+
+@app.get("/spending/entries/{entry_id}")
+async def get_spending_entry(entry_id: str):
+    """Get a specific spending entry by ID"""
+    try:
+        entry = await services['database'].get_spending_entry(entry_id)
+        if entry:
+            return entry
+        else:
+            raise HTTPException(status_code=404, detail="Entry not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to get spending entry {entry_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Retrieval failed: {str(e)}")
+
+@app.put("/spending/entries/{entry_id}")
+async def update_spending_entry(entry_id: str, updates: Dict[str, Any]):
+    """Update a spending entry"""
+    try:
+        success = await services['database'].update_spending_entry(entry_id, updates)
+        if success:
+            return {"success": True, "message": "Entry updated successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Entry not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to update spending entry {entry_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Update failed: {str(e)}")
+
+@app.delete("/spending/entries/{entry_id}")
+async def delete_spending_entry(entry_id: str):
+    """Delete a spending entry"""
+    try:
+        success = await services['database'].delete_spending_entry(entry_id)
+        if success:
+            return {"success": True, "message": "Entry deleted successfully"}
+        else:
+            raise HTTPException(status_code=404, detail="Entry not found")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Failed to delete spending entry {entry_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
+
+@app.get("/spending/statistics")
+async def get_spending_statistics():
+    """Get database statistics"""
+    try:
+        stats = await services['database'].get_statistics()
+        return stats
+    except Exception as e:
+        logger.error(f"❌ Failed to get statistics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Statistics failed: {str(e)}")
+
+@app.get("/spending/logs/{entry_id}")
+async def get_processing_logs(entry_id: str):
+    """Get processing logs for an entry"""
+    try:
+        logs = await services['database'].get_processing_logs(entry_id)
+        return {"logs": logs, "count": len(logs)}
+    except Exception as e:
+        logger.error(f"❌ Failed to get processing logs: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Log retrieval failed: {str(e)}")
+
+# Enhanced processing endpoints with database storage
+@app.post("/process/text/store", response_model=SpendingEntry)
+async def process_and_store_spending_text(request: TextProcessingRequest):
+    """Process spending text and automatically store in database"""
+    try:
+        # Process the text
+        spending_entry = await process_spending_text(request)
+        
+        # Store in database
+        success = await services['database'].store_spending_entry(spending_entry)
+        if success:
+            logger.info(f"✅ Processed and stored spending entry: {spending_entry.id}")
+        else:
+            logger.warning(f"⚠️ Failed to store processed entry: {spending_entry.id}")
+        
+        return spending_entry
+        
+    except Exception as e:
+        logger.error(f"❌ Process and store failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Process and store failed: {str(e)}")
+
+@app.post("/process/receipt/store", response_model=SpendingEntry)
+async def process_and_store_receipt(
+    file: UploadFile = File(...),
+    language: str = "eng+tha",
+    use_ai_fallback: bool = True,
+    confidence_threshold: float = 0.8
+):
+    """Process receipt image and automatically store in database"""
+    try:
+        # Process the receipt
+        spending_entry = await process_receipt_complete(
+            file, language, use_ai_fallback, confidence_threshold
+        )
+        
+        # Store in database
+        success = await services['database'].store_spending_entry(spending_entry)
+        if success:
+            logger.info(f"✅ Processed and stored receipt entry: {spending_entry.id}")
+        else:
+            logger.warning(f"⚠️ Failed to store processed receipt: {spending_entry.id}")
+        
+        return spending_entry
+        
+    except Exception as e:
+        logger.error(f"❌ Process and store receipt failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Process and store receipt failed: {str(e)}")
+
 # Background task for batch enhancement
 async def enhance_batch_results(results: List[SpendingEntry]):
     """Background task to enhance batch results with AI"""
@@ -508,10 +657,20 @@ async def enhance_batch_results(results: List[SpendingEntry]):
         for entry in results:
             if entry.confidence < 0.8:
                 enhanced = await ai_service.enhance_spending_entry(entry)
-                # Update the entry (in real app, this would update database)
+                # Update the entry and store in database
                 entry.confidence = enhanced.confidence
                 entry.category = enhanced.category or entry.category
                 entry.subcategory = enhanced.subcategory or entry.subcategory
+                
+                # Update in database
+                await services['database'].update_spending_entry(
+                    entry.id, 
+                    {
+                        'confidence': entry.confidence,
+                        'category': entry.category,
+                        'subcategory': entry.subcategory
+                    }
+                )
     except Exception as e:
         logger.error(f"❌ Background enhancement failed: {str(e)}")
 
