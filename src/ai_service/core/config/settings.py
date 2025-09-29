@@ -80,7 +80,8 @@ class Settings(BaseSettings):
     enable_pattern_analysis: bool = Field(default=True, description="Enable spending pattern analysis")
 
     @validator("environment")
-    def validate_environment(self, v: str) -> str:
+    @classmethod
+    def validate_environment(cls, v: str) -> str:
         """Validate environment setting."""
         allowed = {"development", "staging", "production"}
         if v.lower() not in allowed:
@@ -89,7 +90,8 @@ class Settings(BaseSettings):
         return v.lower()
 
     @validator("log_level")
-    def validate_log_level(self, v: str) -> str:
+    @classmethod
+    def validate_log_level(cls, v: str) -> str:
         """Validate log level setting."""
         allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if v.upper() not in allowed:
@@ -98,7 +100,8 @@ class Settings(BaseSettings):
         return v.upper()
 
     @validator("confidence_threshold", "ocr_confidence_threshold")
-    def validate_confidence_threshold(self, v: float) -> float:
+    @classmethod
+    def validate_confidence_threshold(cls, v: float) -> float:
         """Validate confidence threshold values."""
         if not 0.0 <= v <= 1.0:
             msg = "Confidence threshold must be between 0.0 and 1.0"
@@ -106,7 +109,8 @@ class Settings(BaseSettings):
         return v
 
     @validator("port", "metrics_port")
-    def validate_port(self, v: int) -> int:
+    @classmethod
+    def validate_port(cls, v: int) -> int:
         """Validate port numbers."""
         if not 1 <= v <= 65535:
             msg = "Port must be between 1 and 65535"
@@ -114,7 +118,8 @@ class Settings(BaseSettings):
         return v
 
     @validator("max_file_size_mb")
-    def validate_max_file_size(self, v: int) -> int:
+    @classmethod
+    def validate_max_file_size(cls, v: int) -> int:
         """Validate maximum file size."""
         if v <= 0 or v > 100:
             msg = "Max file size must be between 1 and 100 MB"
