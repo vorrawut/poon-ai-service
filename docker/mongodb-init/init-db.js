@@ -31,4 +31,29 @@ db.spending_entries.createIndex({ "transaction_date": 1 });
 db.spending_entries.createIndex({ "created_at": 1 });
 db.spending_entries.createIndex({ "transaction_date": 1, "category": 1 });
 
-print('MongoDB initialization completed successfully');
+// Create the AI training data collection
+db.createCollection('ai_training_data');
+
+// Create indexes for AI training data
+db.ai_training_data.createIndex({ "id": 1 }, { unique: true });
+db.ai_training_data.createIndex({ "status": 1 });
+db.ai_training_data.createIndex({ "language": 1 });
+db.ai_training_data.createIndex({ "accuracy_score": 1 });
+db.ai_training_data.createIndex({ "ai_confidence": 1 });
+db.ai_training_data.createIndex({ "feedback_provided": 1 });
+db.ai_training_data.createIndex({ "created_at": 1 });
+db.ai_training_data.createIndex({ "updated_at": 1 });
+db.ai_training_data.createIndex({ "user_id": 1 });
+db.ai_training_data.createIndex({ "session_id": 1 });
+db.ai_training_data.createIndex({ "model_version": 1 });
+
+// Compound indexes for common queries
+db.ai_training_data.createIndex({ "status": 1, "created_at": -1 });
+db.ai_training_data.createIndex({ "language": 1, "status": 1 });
+db.ai_training_data.createIndex({ "accuracy_score": 1, "created_at": -1 });
+db.ai_training_data.createIndex({ "feedback_provided": 1, "status": 1 });
+
+// Text index for similarity search
+db.ai_training_data.createIndex({ "input_text": "text" });
+
+print('MongoDB initialization completed successfully with AI training collections');

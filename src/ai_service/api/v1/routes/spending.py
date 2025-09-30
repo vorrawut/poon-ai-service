@@ -399,6 +399,8 @@ async def process_text(
     request: Request, text_data: ProcessTextRequest
 ) -> ProcessTextResponse:
     """Process natural language text into structured spending entries using AI."""
+    training_data_id = None
+
     try:
         if (
             not hasattr(request.app.state, "llama_client")
@@ -407,13 +409,44 @@ async def process_text(
             raise HTTPException(status_code=503, detail="AI service not available")
 
         llama_client = request.app.state.llama_client
+        ai_learning_service = getattr(request.app.state, "ai_learning_service", None)
 
         # Use Llama to parse the text
         result = await llama_client.parse_spending_text(
             text=text_data.text, language=text_data.language
         )
 
+        # Record AI interaction for learning (even if it fails)
+        if ai_learning_service:
+            try:
+                training_data = await ai_learning_service.record_ai_interaction(
+                    input_text=text_data.text,
+                    language=text_data.language,
+                    raw_ai_response=result.get("raw_response", ""),
+                    parsed_ai_data=result.get("parsed_data", {}),
+                    ai_confidence=result.get("parsed_data", {}).get("confidence", 0.5),
+                    processing_time_ms=result.get("processing_time_ms", 0),
+                    model_version=result.get("model", "llama3.2:3b"),
+                    user_id=getattr(request.state, "user_id", None),
+                    session_id=getattr(request.state, "session_id", None),
+                )
+                training_data_id = training_data.id.value
+            except Exception as e:
+                logger.warning(f"Failed to record AI interaction: {e}")
+
         if not result["success"]:
+            # Record failure for learning
+            if ai_learning_service and training_data_id:
+                try:
+                    await ai_learning_service.record_processing_failure(
+                        input_text=text_data.text,
+                        language=text_data.language,
+                        error_message=result.get("error", "AI parsing failed"),
+                        raw_ai_response=result.get("raw_response", ""),
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to record processing failure: {e}")
+
             raise HTTPException(
                 status_code=400, detail=result.get("error", "Failed to process text")
             )
@@ -430,15 +463,64 @@ async def process_text(
 
         repository = request.app.state.spending_repository
 
+        # Map AI categories to valid SpendingCategory values using dynamic learning
+        async def map_category(ai_category: str | None) -> str:
+            """Map AI-generated categories to valid SpendingCategory enum values."""
+            if not ai_category:
+                return "Miscellaneous"
+
+            # Get dynamic mappings from AI learning system
+            dynamic_mappings = {}
+            if ai_learning_service:
+                try:
+                    dynamic_mappings = (
+                        await ai_learning_service.get_dynamic_category_mapping()
+                    )
+                except Exception as e:
+                    logger.warning(f"Failed to get dynamic category mappings: {e}")
+
+            # Static fallback mapping for common AI responses
+            static_mapping = {
+                "accommodation": "Travel",
+                "hotel": "Travel",
+                "lodging": "Travel",
+                "restaurant": "Food & Dining",
+                "cafe": "Food & Dining",
+                "coffee": "Food & Dining",
+                "gas": "Transportation",
+                "fuel": "Transportation",
+                "grocery": "Groceries",
+                "supermarket": "Groceries",
+                "medicine": "Healthcare",
+                "pharmacy": "Healthcare",
+                "clothes": "Shopping",
+                "clothing": "Shopping",
+            }
+
+            # Combine dynamic and static mappings (dynamic takes precedence)
+            combined_mapping = {**static_mapping, **dynamic_mappings}
+
+            # Check case-insensitive mapping
+            ai_category_lower = ai_category.lower()
+            if ai_category_lower in combined_mapping:
+                mapped_value = combined_mapping[ai_category_lower]
+                return str(mapped_value)
+
+            # If no mapping found, return the original or default
+            return str(ai_category or "Miscellaneous")
+
+        # Map category using dynamic learning
+        mapped_category = await map_category(parsed_data.get("category"))
+
         command = CreateSpendingEntryCommand(
-            amount=parsed_data.get("amount", 0.0),
-            currency=parsed_data.get("currency", "THB"),
-            merchant=parsed_data.get("merchant", "Unknown Merchant"),
-            description=parsed_data.get("description", text_data.text),
+            amount=parsed_data.get("amount") or 0.0,
+            currency=parsed_data.get("currency") or "THB",
+            merchant=parsed_data.get("merchant") or "Unknown Merchant",
+            description=parsed_data.get("description") or text_data.text,
             transaction_date=datetime.utcnow(),
-            category=parsed_data.get("category", "Miscellaneous"),
-            payment_method=parsed_data.get("payment_method", "Cash"),
-            confidence=parsed_data.get("confidence", 0.7),
+            category=mapped_category,
+            payment_method=parsed_data.get("payment_method") or "Cash",
+            confidence=parsed_data.get("confidence") or 0.7,
             processing_method="llama_direct",
             raw_text=text_data.text,
         )
@@ -449,12 +531,23 @@ async def process_text(
         if create_result.is_failure():
             raise HTTPException(status_code=400, detail=create_result.message)
 
+        # Clean parsed data for response (remove None values)
+        cleaned_parsed_data = {
+            "amount": float(parsed_data.get("amount") or 0.0),
+            "currency": str(parsed_data.get("currency") or "THB"),
+            "merchant": str(parsed_data.get("merchant") or "Unknown Merchant"),
+            "category": str(mapped_category),  # Use the already mapped category
+            "payment_method": str(parsed_data.get("payment_method") or "Cash"),
+            "description": str(parsed_data.get("description") or text_data.text),
+            "confidence": float(parsed_data.get("confidence") or 0.7),
+        }
+
         return ProcessTextResponse(
             status="success",
             message="Text processed and spending entry created",
             entry_id=create_result.data["entry_id"],
-            parsed_data=ParsedSpendingData(**parsed_data),
-            confidence=parsed_data.get("confidence", 0.7),
+            parsed_data=ParsedSpendingData(**cleaned_parsed_data),
+            confidence=float(cleaned_parsed_data["confidence"]),
             processing_time_ms=result.get("processing_time_ms", 0),
         )
 

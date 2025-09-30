@@ -18,7 +18,11 @@ from ai_service.api.middleware.error_handling import ErrorHandlingMiddleware
 from ai_service.api.middleware.logging import LoggingMiddleware
 from ai_service.api.middleware.metrics import MetricsMiddleware
 from ai_service.api.v1.routes import api_router
+from ai_service.application.services.ai_learning_service import AILearningService
 from ai_service.core.config import get_settings, setup_logging
+from ai_service.infrastructure.database.ai_training_repository import (
+    MongoDBTrainingRepository,
+)
 from ai_service.infrastructure.database.mongodb_repository import (
     MongoDBSpendingRepository,
 )
@@ -39,6 +43,8 @@ class ServiceRegistry:
     def __init__(self) -> None:
         """Initialize service registry."""
         self.spending_repository: MongoDBSpendingRepository | None = None
+        self.training_repository: MongoDBTrainingRepository | None = None
+        self.ai_learning_service: AILearningService | None = None
         self.llama_client: LlamaClient | None = None
         self.ocr_client: TesseractOCRClient | None = None
 
@@ -46,10 +52,18 @@ class ServiceRegistry:
         """Initialize all services."""
         logger.info("🚀 Initializing AI Service components...")
 
-        # Initialize MongoDB repository
+        # Initialize MongoDB repositories
         self.spending_repository = MongoDBSpendingRepository(settings)
         await self.spending_repository.initialize()
-        logger.info("✅ MongoDB repository initialized")
+        logger.info("✅ MongoDB spending repository initialized")
+
+        self.training_repository = MongoDBTrainingRepository(settings)
+        await self.training_repository.initialize()
+        logger.info("✅ MongoDB training repository initialized")
+
+        # Initialize AI Learning Service
+        self.ai_learning_service = AILearningService(self.training_repository)
+        logger.info("✅ AI Learning Service initialized")
 
         # Initialize Llama client if enabled
         if settings.use_llama:
@@ -85,7 +99,11 @@ class ServiceRegistry:
 
         if self.spending_repository:
             await self.spending_repository.close()
-            logger.info("✅ Database repository closed")
+            logger.info("✅ Spending repository closed")
+
+        if self.training_repository:
+            await self.training_repository.close()
+            logger.info("✅ Training repository closed")
 
         if self.llama_client:
             await self.llama_client.close()
@@ -118,6 +136,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
         # Store services in app state for dependency injection
         app.state.spending_repository = service_registry.spending_repository
+        app.state.training_repository = service_registry.training_repository
+        app.state.ai_learning_service = service_registry.ai_learning_service
         app.state.llama_client = service_registry.llama_client
         app.state.ocr_client = service_registry.ocr_client
         app.state.settings = settings

@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
+import structlog
+
 from ...domain.entities.spending_entry import SpendingEntry, SpendingEntryId
 from ...domain.value_objects.confidence import ConfidenceScore
 from ...domain.value_objects.money import Currency, Money
@@ -18,6 +20,8 @@ from .base import Command, CommandHandler, CommandResult
 
 if TYPE_CHECKING:
     from ...domain.repositories.spending_repository import SpendingRepository
+
+logger = structlog.get_logger(__name__)
 
 
 @dataclass(frozen=True)

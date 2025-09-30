@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "generated_at": "2025-09-30T16:45:17Z",
+  "generated_at": "2025-09-30T17:21:02Z",
   "metrics": {
     "_totals": {
       "CONFIDENCE.HIGH": 0,
@@ -11,7 +11,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 5204,
+      "loc": 6411,
       "nosec": 0,
       "skipped_tests": 4
     },
@@ -102,7 +102,20 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 10,
+      "loc": 12,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/api/v1/routes/ai_learning.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 234,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -141,7 +154,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 412,
+      "loc": 483,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -155,6 +168,19 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 49,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/api/v1/schemas/ai_learning.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 73,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -245,7 +271,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 353,
+      "loc": 355,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -285,6 +311,19 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 96,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/application/services/ai_learning_service.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 230,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -366,6 +405,19 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "src/ai_service/domain/entities/ai_training_data.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 200,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "src/ai_service/domain/entities/spending_entry.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
@@ -428,6 +480,19 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 5,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/domain/repositories/ai_training_repository.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 72,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -561,6 +626,19 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "src/ai_service/infrastructure/database/ai_training_repository.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 307,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "src/ai_service/infrastructure/database/mongodb_repository.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
@@ -635,7 +713,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 225,
+      "loc": 241,
       "nosec": 0,
       "skipped_tests": 0
     }
