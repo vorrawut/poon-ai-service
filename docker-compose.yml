@@ -22,6 +22,8 @@ services:
       - MONGODB_DATABASE=spending_db
       - MONGODB_COLLECTION=spending_entries
       - MONGODB_TIMEOUT=10
+      - MONGODB_USERNAME=poon_user
+      - MONGODB_PASSWORD=poon_password
 
       # AI Service (Ollama)
       - USE_LLAMA=true

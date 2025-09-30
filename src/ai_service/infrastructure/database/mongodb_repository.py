@@ -36,6 +36,9 @@ class MongoDBSpendingRepository(SpendingRepository):
             self._client = AsyncIOMotorClient(
                 self.settings.get_mongodb_url(),
                 serverSelectionTimeoutMS=self.settings.mongodb_timeout * 1000,
+                authSource=self.settings.get_mongodb_database(),
+                username=self.settings.mongodb_username,
+                password=self.settings.mongodb_password,
             )
 
             # Test connection
@@ -44,6 +47,10 @@ class MongoDBSpendingRepository(SpendingRepository):
 
             self._database = self._client[self.settings.get_mongodb_database()]
             self._collection = self._database[self.settings.mongodb_collection]
+
+            # Test database access
+            await self._collection.count_documents({}, limit=1)
+            logger.info("Successfully authenticated to spending_db")
 
             # Create indexes for better performance
             await self._ensure_indexes()
@@ -54,28 +61,12 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def _ensure_indexes(self) -> None:
         """Ensure required indexes exist."""
-        if not self._collection:
+        if self._collection is None:
             return
 
-        try:
-            # Create unique index on entry_id
-            await self._collection.create_index("entry_id", unique=True)
-
-            # Create indexes for common query patterns
-            await self._collection.create_index("category")
-            await self._collection.create_index("merchant")
-            await self._collection.create_index("transaction_date")
-            await self._collection.create_index("created_at")
-
-            # Compound index for date range queries
-            await self._collection.create_index(
-                [("transaction_date", 1), ("category", 1)]
-            )
-
-            logger.info("MongoDB indexes created successfully")
-
-        except Exception as e:
-            logger.warning(f"Failed to create indexes: {e}")
+        # Indexes are created by the MongoDB init script
+        # Skip verification to avoid authentication issues during startup
+        logger.info("MongoDB indexes assumed to be created by init script")
 
     async def close(self) -> None:
         """Close MongoDB connection."""
@@ -144,7 +135,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def save(self, entry: SpendingEntry) -> None:
         """Save a spending entry to MongoDB."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         document = self._spending_entry_to_document(entry)
@@ -165,7 +156,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def find_by_id(self, entry_id: SpendingEntryId) -> SpendingEntry | None:
         """Find a spending entry by ID."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -187,7 +178,7 @@ class MongoDBSpendingRepository(SpendingRepository):
         date_to: datetime | None = None,
     ) -> list[SpendingEntry]:
         """Find spending entries with optional filtering."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -222,7 +213,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def delete(self, entry_id: SpendingEntryId) -> bool:
         """Delete a spending entry by ID."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -242,7 +233,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def exists(self, entry_id: SpendingEntryId) -> bool:
         """Check if a spending entry exists."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -257,7 +248,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def count_total(self) -> int:
         """Count total number of spending entries."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -269,7 +260,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def count_by_category(self, category: Any) -> int:
         """Count spending entries by category."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -293,7 +284,7 @@ class MongoDBSpendingRepository(SpendingRepository):
         self, merchant: str, limit: int = 100, offset: int = 0
     ) -> list[SpendingEntry]:
         """Find spending entries by merchant name."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -318,7 +309,7 @@ class MongoDBSpendingRepository(SpendingRepository):
         self, search_text: str, limit: int = 100, offset: int = 0
     ) -> list[SpendingEntry]:
         """Search spending entries by text in merchant or description."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -358,7 +349,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def get_categories(self) -> list[str]:
         """Get all unique categories."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:
@@ -371,7 +362,7 @@ class MongoDBSpendingRepository(SpendingRepository):
 
     async def get_merchants(self) -> list[str]:
         """Get all unique merchants."""
-        if not self._collection:
+        if self._collection is None:
             raise RuntimeError("Repository not initialized")
 
         try:

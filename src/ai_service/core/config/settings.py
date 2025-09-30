@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     mongodb_timeout: int = Field(
         default=10, description="MongoDB connection timeout in seconds"
     )
+    mongodb_username: str = Field(default="poon_user", description="MongoDB username")
+    mongodb_password: str = Field(
+        default="poon_password", description="MongoDB password"
+    )
 
     # AI Service settings - Ollama/Llama
     ollama_url: str = Field(

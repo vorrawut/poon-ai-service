@@ -1,7 +1,7 @@
 """Database infrastructure implementations."""
 
-from .sqlite_repository import SqliteSpendingRepository
+from .mongodb_repository import MongoDBSpendingRepository
 
 __all__ = [
-    "SqliteSpendingRepository",
+    "MongoDBSpendingRepository",
 ]

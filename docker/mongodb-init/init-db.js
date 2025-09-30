@@ -1,6 +1,10 @@
 // MongoDB initialization script for Poon AI Service
 // This script creates the database, user, and indexes
 
+// First authenticate as admin
+db = db.getSiblingDB('admin');
+db.auth('admin', 'password123');
+
 // Switch to the spending_db database
 db = db.getSiblingDB('spending_db');
 
