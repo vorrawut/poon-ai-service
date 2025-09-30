@@ -95,13 +95,15 @@ class TestProcessingStatus:
         """Test that enum has expected values."""
         assert ProcessingStatus.SUCCESS == "success"
         assert ProcessingStatus.FAILED_VALIDATION == "failed_validation"
-        assert ProcessingStatus.FAILED_AI_PARSING == "failed_ai_parsing"
+        assert ProcessingStatus.FAILED_PARSING == "failed_parsing"
+        assert ProcessingStatus.FAILED_MAPPING == "failed_mapping"
+        assert ProcessingStatus.MANUAL_CORRECTION == "manual_correction"
         assert ProcessingStatus.PENDING_REVIEW == "pending_review"
 
     def test_enum_iteration(self):
         """Test iterating over enum values."""
         statuses = list(ProcessingStatus)
-        assert len(statuses) == 4
+        assert len(statuses) == 6
         assert ProcessingStatus.SUCCESS in statuses
 
 
@@ -112,12 +114,13 @@ class TestFeedbackType:
         """Test that enum has expected values."""
         assert FeedbackType.USER_CORRECTION == "user_correction"
         assert FeedbackType.ADMIN_VALIDATION == "admin_validation"
-        assert FeedbackType.MODEL_IMPROVEMENT == "model_improvement"
+        assert FeedbackType.SYSTEM_VALIDATION == "system_validation"
+        assert FeedbackType.AUTO_LEARNING == "auto_learning"
 
     def test_enum_iteration(self):
         """Test iterating over enum values."""
         types = list(FeedbackType)
-        assert len(types) == 3
+        assert len(types) == 4
         assert FeedbackType.USER_CORRECTION in types
 
 
@@ -138,7 +141,7 @@ class TestAITrainingData:
         assert training_data.raw_ai_response == ""
         assert training_data.parsed_ai_data == {}
         assert isinstance(training_data.ai_confidence, ConfidenceScore)
-        assert training_data.ai_confidence.value == 0.0
+        assert training_data.ai_confidence.value == 0.5
         assert training_data.processing_time_ms == 0
         assert training_data.model_version == ""
         assert training_data.status == ProcessingStatus.SUCCESS

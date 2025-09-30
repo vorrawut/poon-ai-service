@@ -169,22 +169,174 @@ class AILearningService:
         return self._category_mappings_cache
 
     async def _update_category_mappings_cache(self) -> None:
-        """Update the category mappings cache from learned data."""
+        """Update the category mappings cache with enhanced learned data."""
 
         try:
-            mappings = await self._training_repository.get_category_mapping_insights()
-            self._category_mappings_cache = mappings
+            # Get learned mappings from user feedback
+            learned_mappings = (
+                await self._training_repository.get_category_mapping_insights()
+            )
+
+            # Enhanced comprehensive mappings for better accuracy
+            comprehensive_mappings = {
+                # English mappings
+                "food": "Food & Dining",
+                "dining": "Food & Dining",
+                "restaurant": "Food & Dining",
+                "cafe": "Food & Dining",
+                "coffee": "Food & Dining",
+                "drink": "Food & Dining",
+                "meal": "Food & Dining",
+                "lunch": "Food & Dining",
+                "dinner": "Food & Dining",
+                "breakfast": "Food & Dining",
+                "snack": "Food & Dining",
+                "beverage": "Food & Dining",
+                "transport": "Transportation",
+                "transportation": "Transportation",
+                "taxi": "Transportation",
+                "bus": "Transportation",
+                "train": "Transportation",
+                "bts": "Transportation",
+                "mrt": "Transportation",
+                "grab": "Transportation",
+                "uber": "Transportation",
+                "motorcycle": "Transportation",
+                "bike": "Transportation",
+                "car": "Transportation",
+                "vehicle": "Transportation",
+                "ride": "Transportation",
+                "accommodation": "Travel",
+                "hotel": "Travel",
+                "lodging": "Travel",
+                "resort": "Travel",
+                "booking": "Travel",
+                "vacation": "Travel",
+                "trip": "Travel",
+                "travel": "Travel",
+                "flight": "Travel",
+                "airline": "Travel",
+                "shop": "Shopping",
+                "shopping": "Shopping",
+                "purchase": "Shopping",
+                "buy": "Shopping",
+                "store": "Shopping",
+                "mall": "Shopping",
+                "retail": "Shopping",
+                "clothes": "Shopping",
+                "clothing": "Shopping",
+                "fashion": "Shopping",
+                "grocery": "Groceries",
+                "groceries": "Groceries",
+                "supermarket": "Groceries",
+                "market": "Groceries",
+                "7-eleven": "Groceries",
+                "convenience": "Groceries",
+                "food_market": "Groceries",
+                "fresh_market": "Groceries",
+                "health": "Healthcare",
+                "healthcare": "Healthcare",
+                "medical": "Healthcare",
+                "doctor": "Healthcare",
+                "hospital": "Healthcare",
+                "pharmacy": "Healthcare",
+                "medicine": "Healthcare",
+                "clinic": "Healthcare",
+                "dental": "Healthcare",
+                "entertainment": "Entertainment",
+                "movie": "Entertainment",
+                "cinema": "Entertainment",
+                "game": "Entertainment",
+                "sport": "Entertainment",
+                "music": "Entertainment",
+                "concert": "Entertainment",
+                "show": "Entertainment",
+                "utility": "Utilities",
+                "utilities": "Utilities",
+                "electric": "Utilities",
+                "electricity": "Utilities",
+                "water": "Utilities",
+                "internet": "Utilities",
+                "phone": "Utilities",
+                "mobile": "Utilities",
+                "bill": "Utilities",
+                # Thai mappings - comprehensive coverage
+                "อาหาร": "Food & Dining",
+                "ร้านอาหาร": "Food & Dining",
+                "กาแฟ": "Food & Dining",
+                "เครื่องดื่ม": "Food & Dining",
+                "ข้าว": "Food & Dining",
+                "กิน": "Food & Dining",
+                "ทาน": "Food & Dining",
+                "เสวย": "Food & Dining",
+                "ร้าน": "Food & Dining",
+                "คาเฟ่": "Food & Dining",
+                "ร้านกาแฟ": "Food & Dining",
+                "เดินทาง": "Transportation",
+                "แท็กซี่": "Transportation",
+                "รถไฟ": "Transportation",
+                "รถเมล์": "Transportation",
+                "รถประจำทาง": "Transportation",
+                "รถตู้": "Transportation",
+                "มอเตอร์ไซค์": "Transportation",
+                "วิน": "Transportation",
+                "รถ": "Transportation",
+                "โรงแรม": "Travel",
+                "ที่พัก": "Travel",
+                "เที่ยว": "Travel",
+                "ท่องเที่ยว": "Travel",
+                "รีสอร์ท": "Travel",
+                "จอง": "Travel",
+                "ซื้อของ": "Shopping",
+                "ช้อปปิ้ง": "Shopping",
+                "ช้อป": "Shopping",
+                "ซื้อ": "Shopping",
+                "ห้าง": "Shopping",
+                "ห้างสรรพสินค้า": "Shopping",
+                "ตลาด": "Groceries",
+                "ซุปเปอร์": "Groceries",
+                "ซุปเปอร์มาร์เก็ต": "Groceries",
+                "เซเว่น": "Groceries",
+                "เทสโก้": "Groceries",
+                "บิ๊กซี": "Groceries",
+                "ท็อปส์": "Groceries",
+                "แม็คโคร": "Groceries",
+                "สุขภาพ": "Healthcare",
+                "โรงพยาบาล": "Healthcare",
+                "หมอ": "Healthcare",
+                "คลินิก": "Healthcare",
+                "ร้านยา": "Healthcare",
+                "ยา": "Healthcare",
+                "บันเทิง": "Entertainment",
+                "หนัง": "Entertainment",
+                "โรงหนัง": "Entertainment",
+                "เกม": "Entertainment",
+                "กีฬา": "Entertainment",
+                "ดนตรี": "Entertainment",
+                "สาธารณูปโภค": "Utilities",
+                "ไฟฟ้า": "Utilities",
+                "น้ำ": "Utilities",
+                "อินเทอร์เน็ต": "Utilities",
+                "โทรศัพท์": "Utilities",
+                "มือถือ": "Utilities",
+                "บิล": "Utilities",
+                # Learned mappings take highest precedence
+                **learned_mappings,
+            }
+
+            self._category_mappings_cache = comprehensive_mappings
             self._last_cache_update = datetime.utcnow()
 
             # Update Redis cache
             if self._cache:
                 try:
-                    await self._cache.set_category_mappings(mappings)
+                    await self._cache.set_category_mappings(comprehensive_mappings)
                 except Exception as e:
                     logger.warning(f"Failed to cache category mappings: {e}")
 
             logger.info(
-                f"Updated category mappings cache with {len(mappings)} mappings"
+                f"Updated comprehensive category mappings: {len(comprehensive_mappings)} total mappings "
+                f"({len(learned_mappings)} learned from users)"
             )
 
         except Exception as e:
@@ -338,6 +490,8 @@ class AILearningService:
             # This would need to be implemented in the repository
             # For now, return basic stats
             return {
+                "average_confidence": stats.get("avg_confidence", 0.0),
+                "average_accuracy": stats.get("avg_accuracy", 0.0),
                 "avg_confidence": stats.get("avg_confidence", 0.0),
                 "avg_accuracy": stats.get("avg_accuracy", 0.0),
                 "confidence_accuracy_gap": abs(

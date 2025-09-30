@@ -31,7 +31,7 @@ class FeedbackType(str, Enum):
     AUTO_LEARNING = "auto_learning"
 
 
-@dataclass
+@dataclass(frozen=True)
 class AITrainingDataId:
     """Unique identifier for AI training data."""
 
@@ -45,7 +45,17 @@ class AITrainingDataId:
     @classmethod
     def from_string(cls, value: str) -> AITrainingDataId:
         """Create ID from string value."""
+        if not value or not value.strip():
+            raise ValueError("AITrainingDataId must be a non-empty string")
         return cls(value=value)
+
+    def __str__(self) -> str:
+        """Return string representation."""
+        return self.value
+
+    def __hash__(self) -> int:
+        """Make the ID hashable."""
+        return hash(self.value)
 
 
 @dataclass
@@ -117,6 +127,9 @@ class AITrainingData:
         # Calculate accuracy score
         self._calculate_accuracy_score()
 
+        # Extract category mappings from corrections
+        self._extract_category_mappings()
+
     def _calculate_accuracy_score(self) -> None:
         """Calculate accuracy score based on corrections needed."""
         if not self.corrected_data or not self.parsed_ai_data:
@@ -135,10 +148,20 @@ class AITrainingData:
     def generate_learning_insights(self) -> dict[str, Any]:
         """Generate insights for model improvement."""
         insights = {
+            "input_text": self.input_text,
+            "language": self.language,
+            "status": self.status.value,
+            "ai_confidence": self.ai_confidence.value,
+            "accuracy_score": self.accuracy_score,
+            "feedback_provided": self.feedback_provided,
+            "feedback_type": self.feedback_type.value if self.feedback_type else None,
+            "error_message": self.error_message,
+            "validation_errors": self.validation_errors,
+            "category_mapping_learned": self.category_mapping_learned,
             "input_patterns": self._analyze_input_patterns(),
             "common_errors": self._identify_common_errors(),
-            "category_mappings": self._extract_category_mappings(),
-            "confidence_calibration": self._analyze_confidence_accuracy(),
+            "category_mappings": self.category_mapping_learned,
+            "confidence_accuracy_analysis": self._analyze_confidence_accuracy(),
         }
         return insights
 
@@ -158,22 +181,23 @@ class AITrainingData:
     def _identify_common_errors(self) -> list[str]:
         """Identify common error patterns."""
         errors = []
-        if self.status == ProcessingStatus.FAILED_VALIDATION:
+        if self.error_message:
+            errors.append(self.error_message)
+        # Include validation errors regardless of status if they exist
+        if self.validation_errors:
             errors.extend(self.validation_errors)
         return errors
 
-    def _extract_category_mappings(self) -> dict[str, str]:
-        """Extract category mapping learnings."""
+    def _extract_category_mappings(self) -> None:
+        """Extract category mapping learnings and update the learned mappings."""
         if not self.corrected_data or not self.parsed_ai_data:
-            return {}
+            return
 
         ai_category = self.parsed_ai_data.get("category")
         corrected_category = self.corrected_data.get("category")
 
         if ai_category and corrected_category and ai_category != corrected_category:
-            return {ai_category: corrected_category}
-
-        return {}
+            self.category_mapping_learned[ai_category] = corrected_category
 
     def _analyze_confidence_accuracy(self) -> dict[str, Any]:
         """Analyze how well AI confidence correlates with actual accuracy."""
@@ -210,9 +234,9 @@ class AITrainingData:
             "accuracy_score": self.accuracy_score,
             "improvement_suggestions": self.improvement_suggestions,
             "category_mapping_learned": self.category_mapping_learned,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
-            "reviewed_at": self.reviewed_at,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "reviewed_at": self.reviewed_at.isoformat() if self.reviewed_at else None,
         }
 
     @classmethod
@@ -243,7 +267,13 @@ class AITrainingData:
             accuracy_score=data.get("accuracy_score"),
             improvement_suggestions=data.get("improvement_suggestions", []),
             category_mapping_learned=data.get("category_mapping_learned", {}),
-            created_at=data.get("created_at", datetime.utcnow()),
-            updated_at=data.get("updated_at", datetime.utcnow()),
-            reviewed_at=data.get("reviewed_at"),
+            created_at=datetime.fromisoformat(data["created_at"])
+            if isinstance(data.get("created_at"), str)
+            else data.get("created_at", datetime.utcnow()),
+            updated_at=datetime.fromisoformat(data["updated_at"])
+            if isinstance(data.get("updated_at"), str)
+            else data.get("updated_at", datetime.utcnow()),
+            reviewed_at=datetime.fromisoformat(data["reviewed_at"])
+            if isinstance(data.get("reviewed_at"), str)
+            else data.get("reviewed_at"),
         )

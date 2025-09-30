@@ -398,60 +398,68 @@ async def create_spending_entry(
 async def process_text(
     request: Request, text_data: ProcessTextRequest
 ) -> ProcessTextResponse:
-    """Process natural language text into structured spending entries using AI."""
-    training_data_id = None
+    """Process natural language text into structured spending entries using ultra-fast AI."""
+    from datetime import datetime
+
+    from ...application.services.enhanced_text_processor import EnhancedTextProcessor
+
+    datetime.utcnow()
 
     try:
-        if (
-            not hasattr(request.app.state, "llama_client")
-            or not request.app.state.llama_client
-        ):
-            raise HTTPException(status_code=503, detail="AI service not available")
-
-        llama_client = request.app.state.llama_client
+        # Get services
+        llama_client = getattr(request.app.state, "llama_client", None)
         ai_learning_service = getattr(request.app.state, "ai_learning_service", None)
 
-        # Use Llama to parse the text
-        result = await llama_client.parse_spending_text(
-            text=text_data.text, language=text_data.language
+        # Initialize enhanced processor with ultra-fast processing
+        enhanced_processor = EnhancedTextProcessor(llama_client)
+
+        logger.info(
+            f"🚀 Processing text: {len(text_data.text)} chars, language: {text_data.language}"
         )
 
-        # Record AI interaction for learning (even if it fails)
+        # Use enhanced fast processing (1-3 second target)
+        result = await enhanced_processor.process_text_fast(
+            text_data.text, text_data.language
+        )
+
+        # Record AI interaction for learning
         if ai_learning_service:
             try:
-                training_data = await ai_learning_service.record_ai_interaction(
+                await ai_learning_service.record_ai_interaction(
                     input_text=text_data.text,
                     language=text_data.language,
-                    raw_ai_response=result.get("raw_response", ""),
-                    parsed_ai_data=result.get("parsed_data", {}),
-                    ai_confidence=result.get("parsed_data", {}).get("confidence", 0.5),
+                    raw_ai_response=str(result),
+                    parsed_ai_data=result,
+                    ai_confidence=result.get("confidence", 0.5),
                     processing_time_ms=result.get("processing_time_ms", 0),
-                    model_version=result.get("model", "llama3.2:3b"),
+                    model_version=f"{result.get('method', 'enhanced')}_processor",
                     user_id=getattr(request.state, "user_id", None),
                     session_id=getattr(request.state, "session_id", None),
                 )
-                training_data_id = training_data.id.value
             except Exception as e:
                 logger.warning(f"Failed to record AI interaction: {e}")
 
-        if not result["success"]:
+        # Validate result
+        if not result or result.get("amount", 0) <= 0:
             # Record failure for learning
-            if ai_learning_service and training_data_id:
+            if ai_learning_service:
                 try:
                     await ai_learning_service.record_processing_failure(
                         input_text=text_data.text,
                         language=text_data.language,
-                        error_message=result.get("error", "AI parsing failed"),
-                        raw_ai_response=result.get("raw_response", ""),
+                        error_message="No valid amount extracted",
+                        raw_ai_response=str(result),
+                        processing_time_ms=result.get("processing_time_ms", 0),
                     )
                 except Exception as e:
                     logger.warning(f"Failed to record processing failure: {e}")
 
             raise HTTPException(
-                status_code=400, detail=result.get("error", "Failed to process text")
+                status_code=400,
+                detail="Could not extract valid spending information from text",
             )
 
-        parsed_data = result["parsed_data"]
+        parsed_data = result
 
         # Create spending entry from parsed data
         from datetime import datetime
@@ -521,7 +529,7 @@ async def process_text(
             category=mapped_category,
             payment_method=parsed_data.get("payment_method") or "Cash",
             confidence=parsed_data.get("confidence") or 0.7,
-            processing_method="llama_direct",
+            processing_method=f"enhanced_{result.get('method', 'hybrid')}",
             raw_text=text_data.text,
         )
 
