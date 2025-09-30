@@ -29,7 +29,7 @@ class TestHealthAPI:
         assert response.status_code == 200
         data = response.json()
 
-        assert data["status"] == "healthy"
+        assert data["status"] == "success"
         assert "service" in data
         assert "version" in data
         assert "environment" in data
@@ -58,10 +58,10 @@ class TestHealthAPI:
         # Check features structure
         features = data["features"]
         assert isinstance(features, dict)
-        assert "voice_processing" in features
-        assert "batch_processing" in features
         assert "ai_enhancement" in features
-        assert "pattern_analysis" in features
+        assert "batch_processing" in features
+        assert "ocr_processing" in features
+        assert "metrics_enabled" in features
 
     def test_readiness_check(self, client):
         """Test the readiness check endpoint."""

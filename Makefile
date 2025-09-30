@@ -191,16 +191,34 @@ docker-clean: ## 🐳 Clean Docker images and containers
 	@echo "$(GREEN)✅ Docker cleanup completed$(RESET)"
 
 # Documentation
-docs: ## 📚 Generate documentation
-	@echo "$(BLUE)Generating documentation...$(RESET)"
-	@mkdir -p docs
-	@python -c "import json; from src.main import app; spec = app.openapi(); json.dump(spec, open('docs/openapi.json', 'w'), indent=2); print('OpenAPI spec generated')"
-	@echo "$(GREEN)✅ Documentation generated$(RESET)"
+docs: ## 📚 Generate comprehensive API documentation
+	@echo "$(BLUE)Generating comprehensive API documentation...$(RESET)"
+	@mkdir -p docs/api
+	@echo "$(YELLOW)Generating OpenAPI specification...$(RESET)"
+	@python -c "import json; from src.main import create_app; app = create_app(); spec = app.openapi(); json.dump(spec, open('docs/api/openapi.json', 'w'), indent=2); print('✅ OpenAPI spec generated')"
+	@echo "$(YELLOW)Generating API documentation HTML...$(RESET)"
+	@python -c "import json; spec = json.load(open('docs/api/openapi.json')); print('📊 API Documentation Summary:'); print(f'  Title: {spec[\"info\"][\"title\"]}'); print(f'  Version: {spec[\"info\"][\"version\"]}'); print(f'  Endpoints: {len(spec[\"paths\"])}'); print(f'  Tags: {len(spec.get(\"tags\", []))}'); print(f'  Schemas: {len(spec.get(\"components\", {}).get(\"schemas\", {}))}')"
+	@echo "$(GREEN)✅ API documentation generated in docs/api/$(RESET)"
 
-serve-docs: ## 📖 Serve documentation locally
-	@echo "$(BLUE)Serving documentation...$(RESET)"
-	@python -m http.server 8080 -d docs
-	@echo "$(CYAN)📖 Documentation available at http://localhost:8080$(RESET)"
+serve-docs: ## 📖 Serve interactive API documentation
+	@echo "$(BLUE)Starting API documentation server...$(RESET)"
+	@echo "$(CYAN)📖 Available documentation:$(RESET)"
+	@echo "  $(GREEN)Swagger UI:$(RESET) http://localhost:8001/docs"
+	@echo "  $(GREEN)ReDoc:$(RESET) http://localhost:8001/redoc"
+	@echo "  $(GREEN)API Examples:$(RESET) http://localhost:8001/api/v1/docs/examples"
+	@echo "  $(GREEN)API Status:$(RESET) http://localhost:8001/api/v1/docs/status"
+	@echo ""
+	@echo "$(YELLOW)Starting development server with enhanced Swagger UI...$(RESET)"
+	@ENV=development DEBUG=true uvicorn src.main:app --reload --host 0.0.0.0 --port 8001
+
+docs-export: ## 📤 Export API documentation to static files
+	@echo "$(BLUE)Exporting API documentation...$(RESET)"
+	@mkdir -p docs/export
+	@echo "$(YELLOW)Exporting OpenAPI JSON...$(RESET)"
+	@python -c "import json; from src.main import create_app; app = create_app(); spec = app.openapi(); json.dump(spec, open('docs/export/openapi.json', 'w'), indent=2)"
+	@echo "$(YELLOW)Exporting OpenAPI YAML...$(RESET)"
+	@python -c "import json, yaml; spec = json.load(open('docs/export/openapi.json')); yaml.dump(spec, open('docs/export/openapi.yaml', 'w'), default_flow_style=False)" 2>/dev/null || echo "$(YELLOW)⚠️ PyYAML not available for YAML export$(RESET)"
+	@echo "$(GREEN)✅ API documentation exported to docs/export/$(RESET)"
 
 # Bruno API Testing
 bruno-update: ## 📡 Update Bruno API tests

@@ -5,6 +5,7 @@ Ultra-fast, cost-free AI-powered spending entry parsing with local Llama4 proces
 ## 🚀 Features
 
 ### **Core Capabilities**
+
 - **🦙 Local Llama4 Processing**: Free, private AI processing with Llama 3.2 3B model
 - **📸 OCR + AI Receipt Processing**: Complete image-to-spending-entry pipeline
 - **💬 Natural Language Parsing**: "Coffee at Starbucks 120 baht cash" → Structured data
@@ -14,6 +15,7 @@ Ultra-fast, cost-free AI-powered spending entry parsing with local Llama4 proces
 - **💾 Database Integration**: SQLite storage with full CRUD operations
 
 ### **Multi-Modal Input Support**
+
 1. **Photo/Receipt Processing** (`POST /process/receipt`)
 2. **Natural Language Text** (`POST /process/text`)
 3. **Direct Llama4 Parsing** (`POST /llama/parse`)
@@ -29,6 +31,7 @@ Frontend (React) ←→ FastAPI Service ←→ Enhanced Llama4 ←→ Ollama (Lo
 ```
 
 ### **Service Stack**
+
 - **FastAPI**: High-performance API server
 - **Enhanced Llama4**: Local AI processing via Ollama
 - **Tesseract OCR**: Image text extraction
@@ -39,6 +42,7 @@ Frontend (React) ←→ FastAPI Service ←→ Enhanced Llama4 ←→ Ollama (Lo
 ## 🛠️ Installation & Setup
 
 ### **Prerequisites**
+
 - Python 3.9+
 - macOS or Linux
 - 4GB+ RAM (for Llama model)
@@ -47,6 +51,7 @@ Frontend (React) ←→ FastAPI Service ←→ Enhanced Llama4 ←→ Ollama (Lo
 ### **Quick Start**
 
 1. **Clone and Setup Python Environment**
+
 ```bash
 cd backend/ai-service
 python -m venv venv
@@ -55,6 +60,7 @@ pip install -r requirements.txt
 ```
 
 2. **Install and Setup Ollama + Llama 3.2**
+
 ```bash
 # Run the automated setup script
 ./setup_ollama.sh
@@ -71,12 +77,14 @@ ollama pull llama3.2:3b
 ```
 
 3. **Configure Environment**
+
 ```bash
 cp env.example .env
 # Edit .env with your settings (optional)
 ```
 
 4. **Start the AI Service**
+
 ```bash
 python main.py
 ```
@@ -84,6 +92,7 @@ python main.py
 The service will be available at `http://localhost:8001`
 
 ### **Health Check**
+
 ```bash
 # Check if everything is working
 ./check_ollama_health.sh
@@ -98,6 +107,7 @@ curl http://localhost:8001/ai/status
 ### **Core Processing**
 
 #### **Text Parsing with Llama4**
+
 ```bash
 curl -X POST "http://localhost:8001/llama/parse" \
   -H "Content-Type: application/json" \
@@ -108,6 +118,7 @@ curl -X POST "http://localhost:8001/llama/parse" \
 ```
 
 #### **Receipt Image Processing**
+
 ```bash
 curl -X POST "http://localhost:8001/process/receipt" \
   -F "file=@receipt.jpg" \
@@ -116,6 +127,7 @@ curl -X POST "http://localhost:8001/process/receipt" \
 ```
 
 #### **Natural Language Processing**
+
 ```bash
 curl -X POST "http://localhost:8001/process/text" \
   -H "Content-Type: application/json" \
@@ -129,6 +141,7 @@ curl -X POST "http://localhost:8001/process/text" \
 ### **Database Operations**
 
 #### **Store Spending Entry**
+
 ```bash
 curl -X POST "http://localhost:8001/spending/store" \
   -H "Content-Type: application/json" \
@@ -145,11 +158,13 @@ curl -X POST "http://localhost:8001/spending/store" \
 ```
 
 #### **Get Spending Entries**
+
 ```bash
 curl "http://localhost:8001/spending/entries?limit=10&category=Food%20%26%20Dining"
 ```
 
 #### **Spending Analysis**
+
 ```bash
 curl -X POST "http://localhost:8001/analyze/spending" \
   -H "Content-Type: application/json" \
@@ -160,6 +175,7 @@ curl -X POST "http://localhost:8001/analyze/spending" \
 ```
 
 ### **Enhanced Endpoints (Process + Store)**
+
 ```bash
 # Process text and automatically store
 curl -X POST "http://localhost:8001/process/text/store" \
@@ -174,16 +190,19 @@ curl -X POST "http://localhost:8001/process/receipt/store" \
 ## 🧠 AI Processing Pipeline
 
 ### **1. Text Input Processing**
+
 ```
 User Input → Local NLP → [Low Confidence?] → Llama4 Enhancement → Structured Data
 ```
 
 ### **2. Receipt Processing**
+
 ```
 Image → OCR (Tesseract) → Text → NLP → [Low Confidence?] → Llama4 → Spending Entry
 ```
 
 ### **3. Direct Llama4 Processing**
+
 ```
 Complex Text → Llama4 (Direct) → High-Accuracy Structured Data
 ```
@@ -191,6 +210,7 @@ Complex Text → Llama4 (Direct) → High-Accuracy Structured Data
 ## 🔧 Configuration
 
 ### **Environment Variables**
+
 ```env
 # Ollama Configuration
 OLLAMA_URL=http://localhost:11434
@@ -208,6 +228,7 @@ REDIS_URL=redis://localhost:6379
 ```
 
 ### **Model Configuration**
+
 - **Primary Model**: `llama3.2:3b` (2GB, fast, accurate)
 - **Alternative Models**: `llama3.2:1b` (smaller), `llama3.1:8b` (larger)
 - **Language Support**: English, Thai (extensible)
@@ -215,18 +236,21 @@ REDIS_URL=redis://localhost:6379
 ## 📊 Performance & Accuracy
 
 ### **Processing Speed**
+
 - **Local NLP**: ~50ms
 - **Llama4 Enhancement**: ~500-2000ms
 - **OCR Processing**: ~200-1000ms
 - **End-to-End**: ~1-3 seconds
 
 ### **Accuracy Metrics**
+
 - **Amount Extraction**: 95%+
 - **Merchant Recognition**: 90%+
 - **Category Classification**: 85%+
 - **Overall Confidence**: 85%+ with Llama4
 
 ### **Cost Comparison**
+
 - **Local Llama4**: $0 (free)
 - **OpenAI GPT-4**: ~$0.03 per request
 - **Monthly Savings**: $100+ for 1000+ requests
@@ -234,6 +258,7 @@ REDIS_URL=redis://localhost:6379
 ## 🔍 Monitoring & Debugging
 
 ### **Health Monitoring**
+
 ```bash
 # Service health
 curl http://localhost:8001/health
@@ -246,12 +271,14 @@ curl http://localhost:8001/spending/statistics
 ```
 
 ### **Processing Logs**
+
 ```bash
 # Get processing logs for an entry
 curl http://localhost:8001/spending/logs/entry_123
 ```
 
 ### **Log Files**
+
 - **AI Service**: `ai-service.log`
 - **Ollama**: `ollama.log`
 - **Database**: SQLite file with processing logs
@@ -259,12 +286,13 @@ curl http://localhost:8001/spending/logs/entry_123
 ## 🚀 Frontend Integration
 
 ### **React Service Usage**
+
 ```typescript
-import { llamaService } from './services/llamaService';
+import { llamaService } from "./services/llamaService";
 
 // Parse spending text
 const result = await llamaService.parseSpendingText(
-  "Coffee at Starbucks 120 baht card"
+  "Coffee at Starbucks 120 baht card",
 );
 
 // Process receipt image
@@ -275,13 +303,14 @@ const analysis = await llamaService.analyzeSpendingPatterns(entries);
 ```
 
 ### **Component Integration**
+
 ```tsx
-import { LlamaSpendingInput } from './components/spending/LlamaSpendingInput';
+import { LlamaSpendingInput } from "./components/spending/LlamaSpendingInput";
 
 <LlamaSpendingInput
-  onSpendingAdded={(entry) => console.log('New entry:', entry)}
-  onError={(error) => console.error('Error:', error)}
-/>
+  onSpendingAdded={(entry) => console.log("New entry:", entry)}
+  onError={(error) => console.error("Error:", error)}
+/>;
 ```
 
 ## 🔧 Troubleshooting
@@ -289,6 +318,7 @@ import { LlamaSpendingInput } from './components/spending/LlamaSpendingInput';
 ### **Common Issues**
 
 #### **Ollama Not Starting**
+
 ```bash
 # Check if Ollama is running
 curl http://localhost:11434/api/tags
@@ -301,6 +331,7 @@ tail -f ollama.log
 ```
 
 #### **Model Not Found**
+
 ```bash
 # List available models
 ollama list
@@ -310,12 +341,14 @@ ollama pull llama3.2:3b
 ```
 
 #### **Low Performance**
+
 - Ensure sufficient RAM (4GB+)
 - Use SSD storage
 - Close other memory-intensive applications
 - Consider using smaller model (`llama3.2:1b`)
 
 #### **API Errors**
+
 ```bash
 # Check service logs
 tail -f ai-service.log
@@ -327,11 +360,13 @@ curl http://localhost:8001/health
 ### **Performance Tuning**
 
 #### **Model Selection**
+
 - **llama3.2:1b**: Fastest, lower accuracy (~1GB RAM)
 - **llama3.2:3b**: Balanced, recommended (~2GB RAM)
 - **llama3.1:8b**: Highest accuracy, slower (~4GB RAM)
 
 #### **Optimization Settings**
+
 ```env
 # Faster processing, lower accuracy
 LLAMA_TEMPERATURE=0.1
@@ -345,6 +380,7 @@ LLAMA_MAX_TOKENS=600
 ## 🛣️ Roadmap
 
 ### **Upcoming Features**
+
 - [ ] **Multi-language Support**: Chinese, Japanese, Korean
 - [ ] **Advanced OCR**: Handwriting recognition
 - [ ] **Smart Categories**: Auto-learning from user behavior
@@ -353,6 +389,7 @@ LLAMA_MAX_TOKENS=600
 - [ ] **Advanced Analytics**: Spending predictions, budget optimization
 
 ### **Model Upgrades**
+
 - [ ] **Llama 3.3 Support**: When available
 - [ ] **Specialized Models**: Finance-specific fine-tuning
 - [ ] **Multi-modal Models**: Vision + Language processing
@@ -360,6 +397,7 @@ LLAMA_MAX_TOKENS=600
 ## 📝 Development
 
 ### **Adding New Features**
+
 1. **Create Feature Branch**: `git checkout -b feature/new-feature`
 2. **Add Endpoints**: Update `main.py`
 3. **Add Models**: Update `models/spending_models.py`
@@ -368,6 +406,7 @@ LLAMA_MAX_TOKENS=600
 6. **Test Integration**: Test with frontend
 
 ### **Testing**
+
 ```bash
 # Unit tests
 pytest tests/
@@ -380,6 +419,7 @@ python tests/load_test.py
 ```
 
 ### **Contributing**
+
 1. Fork the repository
 2. Create feature branch
 3. Add tests for new functionality

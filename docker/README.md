@@ -5,18 +5,21 @@ Complete Docker setup for running the Poon AI Service locally with all necessary
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker Desktop (4.20+)
 - Docker Compose (2.20+)
 - At least 4GB RAM available for containers
 - 10GB free disk space (for AI models)
 
 ### One-Command Setup
+
 ```bash
 # From the project root
 ./docker/start.sh
 ```
 
 This will:
+
 - ✅ Build all services
 - ✅ Start Ollama, Redis, and AI Service
 - ✅ Download the Llama 3.2:3b model
@@ -26,21 +29,24 @@ This will:
 ## 📋 Services Included
 
 ### Core Services
-| Service | Port | Description | Health Check |
-|---------|------|-------------|--------------|
-| **AI Service** | 8001 | Main FastAPI application | `http://localhost:8001/health` |
-| **Ollama** | 11434 | AI model server (Llama 3.2:3b) | `http://localhost:11434/api/tags` |
-| **Redis** | 6379 | Caching and session storage | `redis-cli ping` |
+
+| Service        | Port  | Description                    | Health Check                      |
+| -------------- | ----- | ------------------------------ | --------------------------------- |
+| **AI Service** | 8001  | Main FastAPI application       | `http://localhost:8001/health`    |
+| **Ollama**     | 11434 | AI model server (Llama 3.2:3b) | `http://localhost:11434/api/tags` |
+| **Redis**      | 6379  | Caching and session storage    | `redis-cli ping`                  |
 
 ### Optional Services (Monitoring)
-| Service | Port | Description | Credentials |
-|---------|------|-------------|-------------|
-| **Prometheus** | 9090 | Metrics collection | - |
-| **Grafana** | 3000 | Monitoring dashboards | admin/admin |
+
+| Service        | Port | Description           | Credentials |
+| -------------- | ---- | --------------------- | ----------- |
+| **Prometheus** | 9090 | Metrics collection    | -           |
+| **Grafana**    | 3000 | Monitoring dashboards | admin/admin |
 
 ## 🛠️ Management Commands
 
 ### Using the Makefile
+
 ```bash
 cd docker/
 
@@ -72,6 +78,7 @@ make clean
 ```
 
 ### Using Docker Compose Directly
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -92,6 +99,7 @@ docker-compose down -v
 ## 🧪 Testing the Setup
 
 ### 1. Health Checks
+
 ```bash
 # Basic health
 curl http://localhost:8001/health
@@ -101,6 +109,7 @@ curl http://localhost:8001/api/v1/health/detailed
 ```
 
 ### 2. API Testing
+
 ```bash
 # Get spending entries
 curl http://localhost:8001/api/v1/spending/
@@ -126,6 +135,7 @@ curl -X POST http://localhost:8001/api/v1/spending/process/text \
 ```
 
 ### 3. Bruno API Testing
+
 ```bash
 # Open Bruno and test against http://localhost:8001
 bruno open ../bruno/
@@ -134,6 +144,7 @@ bruno open ../bruno/
 ## 🔧 Configuration
 
 ### Environment Variables
+
 The services use environment variables defined in the docker-compose.yml:
 
 ```yaml
@@ -161,6 +172,7 @@ ENABLE_METRICS=true
 ```
 
 ### Custom Configuration
+
 1. Copy `docker/env.docker` to `.env` in the project root
 2. Modify values as needed
 3. Restart services: `docker-compose restart`
@@ -168,16 +180,19 @@ ENABLE_METRICS=true
 ## 📊 Monitoring & Observability
 
 ### Prometheus Metrics
+
 - **URL**: http://localhost:9090
 - **Metrics**: HTTP requests, response times, AI processing stats
 - **Targets**: AI Service, Redis
 
 ### Grafana Dashboards
+
 - **URL**: http://localhost:3000
 - **Login**: admin/admin
 - **Datasource**: Prometheus (auto-configured)
 
 ### Logs
+
 ```bash
 # All services
 docker-compose logs -f
@@ -196,6 +211,7 @@ docker-compose logs -f -t
 ### Common Issues
 
 #### 1. Services Won't Start
+
 ```bash
 # Check Docker is running
 docker info
@@ -208,6 +224,7 @@ docker-compose logs
 ```
 
 #### 2. Ollama Model Download Fails
+
 ```bash
 # Manual model download
 docker-compose exec ollama ollama pull llama3.2:3b
@@ -220,6 +237,7 @@ curl http://localhost:11434/api/tags
 ```
 
 #### 3. AI Service Can't Connect to Ollama
+
 ```bash
 # Check network connectivity
 docker-compose exec ai-service ping ollama
@@ -231,6 +249,7 @@ docker-compose restart ai-service
 ```
 
 #### 4. Out of Memory
+
 ```bash
 # Check container memory usage
 docker stats
@@ -240,6 +259,7 @@ docker stats
 ```
 
 #### 5. Port Conflicts
+
 ```bash
 # Check what's using the ports
 lsof -i :8001
@@ -250,6 +270,7 @@ lsof -i :6379
 ```
 
 ### Health Check Commands
+
 ```bash
 # AI Service
 curl -f http://localhost:8001/health
@@ -267,6 +288,7 @@ make status
 ## 🔒 Security Notes
 
 ### Development vs Production
+
 This setup is optimized for **local development and testing**. For production:
 
 1. **Change default passwords**
@@ -277,6 +299,7 @@ This setup is optimized for **local development and testing**. For production:
 6. **Limit exposed ports**
 
 ### Current Security Features
+
 - ✅ Non-root user in production container
 - ✅ Health checks enabled
 - ✅ Resource limits configured
@@ -287,6 +310,7 @@ This setup is optimized for **local development and testing**. For production:
 ## 📈 Performance Tuning
 
 ### Resource Allocation
+
 ```yaml
 # In docker-compose.yml
 deploy:
@@ -295,16 +319,18 @@ deploy:
       memory: 2G
     limits:
       memory: 4G
-      cpus: '2.0'
+      cpus: "2.0"
 ```
 
 ### Ollama Optimization
+
 - **Model Size**: llama3.2:3b (~2GB)
 - **Memory**: 2-4GB recommended
 - **CPU**: 2+ cores recommended
 - **GPU**: Optional, requires nvidia-docker
 
 ### Redis Optimization
+
 - **Memory**: 256MB limit configured
 - **Persistence**: AOF enabled
 - **Eviction**: allkeys-lru policy
@@ -312,6 +338,7 @@ deploy:
 ## 🚀 Advanced Usage
 
 ### Custom Models
+
 ```bash
 # Use different Llama model
 docker-compose exec ollama ollama pull llama3.2:1b
@@ -322,6 +349,7 @@ docker-compose exec ollama ollama list
 ```
 
 ### Development Mode
+
 ```bash
 # Mount source code for live reload
 # Already configured in docker-compose.yml
@@ -330,12 +358,14 @@ volumes:
 ```
 
 ### Production Deployment
+
 ```bash
 # Use production target
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 ## 📝 File Structure
+
 ```
 docker/
 ├── Dockerfile.tesseract     # Multi-stage Docker build

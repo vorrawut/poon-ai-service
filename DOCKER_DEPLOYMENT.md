@@ -8,6 +8,7 @@
 ```
 
 This will:
+
 - ✅ Build all services
 - ✅ Start Ollama, Redis, and AI Service
 - ✅ Download Llama 3.2:3b model
@@ -17,15 +18,18 @@ This will:
 ## 📋 What's Included
 
 ### Core Services
+
 - **AI Service** (Port 8001) - Main FastAPI application with Tesseract OCR
 - **Ollama** (Port 11434) - AI model server with Llama 3.2:3b
 - **Redis** (Port 6379) - Caching and session storage
 
 ### Optional Monitoring
+
 - **Prometheus** (Port 9090) - Metrics collection
 - **Grafana** (Port 3000) - Monitoring dashboards
 
 ### Features
+
 - ✅ **Tesseract OCR** - Multi-language text extraction (English, Thai, Chinese, Japanese, Korean)
 - ✅ **AI Processing** - Natural language spending analysis
 - ✅ **Health Checks** - Comprehensive service monitoring
@@ -36,6 +40,7 @@ This will:
 ## 🛠️ Management Commands
 
 ### Using the Startup Script
+
 ```bash
 # Start all services (recommended)
 ./docker/start.sh
@@ -50,6 +55,7 @@ This will:
 ```
 
 ### Using the Makefile
+
 ```bash
 cd docker/
 
@@ -76,6 +82,7 @@ make down
 ```
 
 ### Using Docker Compose Directly
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -93,6 +100,7 @@ docker-compose down
 ## 🧪 Testing
 
 ### Automated Testing
+
 ```bash
 # Run comprehensive tests
 ./docker/test-deployment.sh
@@ -102,6 +110,7 @@ make test
 ```
 
 ### Manual Testing
+
 ```bash
 # Health check
 curl http://localhost:8001/health
@@ -135,6 +144,7 @@ curl -X POST http://localhost:8001/api/v1/spending/process/text \
 ```
 
 ### Bruno API Testing
+
 ```bash
 # Point Bruno to http://localhost:8001
 # All Bruno collections are updated and working
@@ -143,6 +153,7 @@ curl -X POST http://localhost:8001/api/v1/spending/process/text \
 ## 📊 Service URLs
 
 ### Core Services
+
 - **AI Service**: http://localhost:8001
 - **API Documentation**: http://localhost:8001/docs
 - **Health Check**: http://localhost:8001/health
@@ -152,12 +163,14 @@ curl -X POST http://localhost:8001/api/v1/spending/process/text \
 - **Redis**: localhost:6379
 
 ### Monitoring (Optional)
+
 - **Prometheus**: http://localhost:9090
 - **Grafana**: http://localhost:3000 (admin/admin)
 
 ## 🔧 Configuration
 
 ### Environment Variables
+
 All configuration is in `docker-compose.yml`:
 
 ```yaml
@@ -185,6 +198,7 @@ ENABLE_METRICS=true
 ```
 
 ### Custom Configuration
+
 1. Copy `docker/env.docker` to `.env` in project root
 2. Modify values as needed
 3. Restart: `docker-compose restart`
@@ -194,6 +208,7 @@ ENABLE_METRICS=true
 ### Common Issues
 
 #### Services Won't Start
+
 ```bash
 # Check Docker
 docker info
@@ -208,6 +223,7 @@ docker-compose restart ai-service
 ```
 
 #### Ollama Model Issues
+
 ```bash
 # Manual model download
 docker-compose exec ollama ollama pull llama3.2:3b
@@ -220,6 +236,7 @@ curl http://localhost:11434/api/tags
 ```
 
 #### Out of Memory
+
 ```bash
 # Check memory usage
 docker stats
@@ -229,6 +246,7 @@ docker stats
 ```
 
 #### Port Conflicts
+
 ```bash
 # Check ports
 lsof -i :8001
@@ -239,6 +257,7 @@ lsof -i :6379
 ```
 
 ### Health Checks
+
 ```bash
 # All services
 make status
@@ -269,6 +288,7 @@ requirements.txt             # Updated with OCR dependencies
 ## 🎯 Ready for Production
 
 ### What's Included
+
 - ✅ Multi-stage Docker builds
 - ✅ Health checks and monitoring
 - ✅ Resource limits and reservations
@@ -278,6 +298,7 @@ requirements.txt             # Updated with OCR dependencies
 - ✅ Graceful shutdowns
 
 ### Production Checklist
+
 - [ ] Change default passwords
 - [ ] Use proper secrets management
 - [ ] Enable HTTPS/TLS
@@ -289,6 +310,7 @@ requirements.txt             # Updated with OCR dependencies
 ## 🎉 Success!
 
 Your Poon AI Service is now fully containerized and ready for:
+
 - ✅ Local development
 - ✅ Testing with Bruno
 - ✅ CI/CD integration

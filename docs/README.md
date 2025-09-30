@@ -7,7 +7,9 @@ This directory contains comprehensive technical documentation for the Poon AI Se
 ### 📊 UML Diagrams
 
 #### 1. **System Overview** (`system-overview.puml`)
+
 High-level system architecture showing:
+
 - Frontend React components
 - AI microservice components
 - External service integrations
@@ -15,7 +17,9 @@ High-level system architecture showing:
 - Primary vs fallback AI services
 
 #### 2. **Processing Flow** (`processing-flow.puml`)
+
 Detailed sequence diagrams for:
+
 - Photo receipt processing (OCR → NLP → AI)
 - Voice/chat text processing
 - Batch file processing
@@ -23,7 +27,9 @@ Detailed sequence diagrams for:
 - Caching and optimization strategies
 
 #### 3. **Service Architecture** (`service-architecture.puml`)
+
 Internal service architecture including:
+
 - FastAPI application structure
 - Core service classes and relationships
 - Data models and their interactions
@@ -31,7 +37,9 @@ Internal service architecture including:
 - Dependency relationships
 
 #### 4. **API Endpoints** (`api-endpoints.puml`)
+
 Complete API documentation showing:
+
 - All available endpoints
 - Request/response schemas
 - Data model relationships
@@ -39,7 +47,9 @@ Complete API documentation showing:
 - Error handling patterns
 
 #### 5. **Frontend Integration** (`frontend-integration.puml`)
+
 Frontend integration patterns:
+
 - React component architecture
 - API integration points
 - State management flow
@@ -47,7 +57,9 @@ Frontend integration patterns:
 - User experience flows
 
 #### 6. **Deployment Architecture** (`deployment-architecture.puml`)
+
 Production deployment overview:
+
 - Development vs production environments
 - Load balancing and scaling
 - Monitoring and logging setup
@@ -57,17 +69,20 @@ Production deployment overview:
 ## 🎯 Key Architectural Decisions
 
 ### **AI-First Design**
+
 - **Primary**: Llama4 via Ollama (local, free, private)
 - **Fallback**: OpenAI GPT (cloud, paid, when needed)
 - **Cost Optimization**: 90% local processing, 10% cloud fallback
 
 ### **Performance Strategy**
+
 - **Caching**: Redis for repeated requests
 - **Local Processing**: Tesseract OCR + pattern matching NLP
 - **Async Processing**: FastAPI with background tasks
 - **Load Balancing**: Horizontal scaling support
 
 ### **Data Privacy**
+
 - **Local AI**: Sensitive data never leaves your infrastructure
 - **Minimal Cloud**: Only anonymous/encrypted data to OpenAI
 - **Caching**: Local Redis with TTL expiration
@@ -76,6 +91,7 @@ Production deployment overview:
 ## 🔧 Technical Specifications
 
 ### **Core Technologies**
+
 - **Backend**: Python 3.11+ with FastAPI
 - **AI Processing**: Llama4 via Ollama (primary)
 - **OCR**: Tesseract with OpenCV preprocessing
@@ -83,6 +99,7 @@ Production deployment overview:
 - **Containerization**: Docker with Kubernetes support
 
 ### **Performance Targets**
+
 - **Health Check**: <100ms response time
 - **OCR Processing**: <3 seconds for clear images
 - **NLP Processing**: <500ms for text parsing
@@ -90,6 +107,7 @@ Production deployment overview:
 - **AI Analysis**: <10 seconds for pattern analysis
 
 ### **Scalability**
+
 - **Horizontal Scaling**: Multiple AI service instances
 - **Load Balancing**: Nginx or cloud load balancers
 - **Caching Strategy**: Distributed Redis cluster
@@ -98,6 +116,7 @@ Production deployment overview:
 ## 📈 Processing Capabilities
 
 ### **Input Methods Supported**
+
 1. **Photo/Receipt Upload**: OCR + AI extraction
 2. **Voice Input**: Speech-to-text + NLP parsing
 3. **Chat/Text Input**: Natural language processing
@@ -106,12 +125,14 @@ Production deployment overview:
 6. **Quick Templates**: Predefined spending patterns
 
 ### **Language Support**
+
 - **English**: Full support with US/UK variants
 - **Thai**: Complete Thai language processing
 - **Mixed Language**: Automatic detection and processing
 - **Extensible**: Architecture ready for additional languages
 
 ### **AI Capabilities**
+
 - **Text Extraction**: OCR with confidence scoring
 - **Entity Recognition**: Merchant, amount, category, date
 - **Pattern Analysis**: Spending behavior insights
@@ -121,22 +142,24 @@ Production deployment overview:
 ## 🔄 Integration Patterns
 
 ### **Frontend Integration**
+
 ```typescript
 // Photo processing
-const result = await fetch('/process/receipt', {
-  method: 'POST',
-  body: formData
+const result = await fetch("/process/receipt", {
+  method: "POST",
+  body: formData,
 });
 
 // Text processing
-const result = await fetch('/process/text', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ text: userInput })
+const result = await fetch("/process/text", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ text: userInput }),
 });
 ```
 
 ### **Backend Integration**
+
 ```python
 # Service initialization
 llama_service = LlamaService(settings)
@@ -144,6 +167,7 @@ nlp_result = await llama_service.enhance_nlp_result(text, initial_result)
 ```
 
 ### **Monitoring Integration**
+
 ```yaml
 # Prometheus metrics
 - ai_requests_total
@@ -155,12 +179,14 @@ nlp_result = await llama_service.enhance_nlp_result(text, initial_result)
 ## 🚀 Deployment Guide
 
 ### **Development Setup**
+
 1. Install Python 3.11+ and dependencies
 2. Install Ollama and pull Llama4 model
 3. Start Redis (optional, will use memory cache)
 4. Run FastAPI development server
 
 ### **Production Deployment**
+
 1. Build Docker container
 2. Deploy to Kubernetes cluster
 3. Configure load balancer
@@ -168,6 +194,7 @@ nlp_result = await llama_service.enhance_nlp_result(text, initial_result)
 5. Configure SSL/TLS certificates
 
 ### **Environment Configuration**
+
 ```bash
 # Primary AI (recommended)
 USE_LLAMA=true
@@ -185,18 +212,21 @@ CACHE_TTL=3600
 ## 📊 Monitoring and Observability
 
 ### **Health Checks**
+
 - Service availability monitoring
 - AI service status (Llama4/OpenAI)
 - External dependency health
 - Performance metrics tracking
 
 ### **Logging Strategy**
+
 - Structured JSON logging
 - Request/response tracing
 - Error tracking and alerting
 - Performance profiling
 
 ### **Metrics Collection**
+
 - Request volume and latency
 - AI processing accuracy
 - Cache hit/miss ratios
@@ -205,18 +235,21 @@ CACHE_TTL=3600
 ## 🔒 Security Considerations
 
 ### **Data Protection**
+
 - Input validation and sanitization
 - Rate limiting and throttling
 - API key management
 - Secure file upload handling
 
 ### **Privacy Compliance**
+
 - Local AI processing (data never leaves)
 - Minimal cloud API usage
 - Audit logging capabilities
 - Data retention policies
 
 ### **Infrastructure Security**
+
 - Container security scanning
 - Network segmentation
 - SSL/TLS encryption
@@ -225,18 +258,21 @@ CACHE_TTL=3600
 ## 🧪 Testing Strategy
 
 ### **API Testing**
+
 - Bruno collection for comprehensive testing
 - Unit tests for individual services
 - Integration tests for workflows
 - Load testing for performance validation
 
 ### **AI Quality Testing**
+
 - OCR accuracy benchmarks
 - NLP parsing validation
 - AI enhancement effectiveness
 - Multi-language processing tests
 
 ### **Performance Testing**
+
 - Response time validation
 - Concurrent request handling
 - Memory usage profiling
@@ -245,18 +281,21 @@ CACHE_TTL=3600
 ## 📋 Maintenance and Operations
 
 ### **Regular Tasks**
+
 - Model updates (Llama4 versions)
 - Cache cleanup and optimization
 - Log rotation and archival
 - Performance monitoring review
 
 ### **Troubleshooting**
+
 - Common error patterns
 - Performance bottleneck identification
 - AI service connectivity issues
 - Cache invalidation strategies
 
 ### **Scaling Operations**
+
 - Horizontal scaling procedures
 - Load balancing configuration
 - Resource allocation optimization

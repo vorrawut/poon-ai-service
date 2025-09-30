@@ -140,15 +140,96 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
 
-    # Create FastAPI app
+    # Create FastAPI app with comprehensive metadata
     app = FastAPI(
         title=settings.app_name,
-        description="AI-powered spending analysis microservice with local Llama4 processing",
+        description="""
+        🦙 **Poon AI Service** - Advanced AI-Powered Spending Analysis Microservice
+
+        ## 🚀 Features
+
+        - **🤖 AI-Powered Text Processing**: Uses local Llama 3.2 model for intelligent spending analysis
+        - **🔍 OCR Integration**: Tesseract OCR for receipt and document processing
+        - **📊 Spending Analytics**: Comprehensive spending entry management and categorization
+        - **🏗️ Clean Architecture**: Domain-driven design with CQRS pattern
+        - **📈 Monitoring**: Built-in Prometheus metrics and health checks
+        - **🔒 Secure**: Input validation, error handling, and security best practices
+
+        ## 🛠️ Technology Stack
+
+        - **FastAPI** - Modern, fast web framework
+        - **Ollama + Llama 3.2** - Local AI model for text processing
+        - **Tesseract OCR** - Optical character recognition
+        - **SQLite** - Lightweight database
+        - **Pydantic** - Data validation and serialization
+        - **Prometheus** - Metrics and monitoring
+
+        ## 📖 API Documentation
+
+        This interactive documentation provides:
+        - Complete API reference with examples
+        - Request/response schemas
+        - Error handling documentation
+        - Live testing capabilities
+
+        ## 🔗 Useful Links
+
+        - **Health Check**: `/health`
+        - **Detailed Health**: `/api/v1/health/detailed`
+        - **Metrics**: `/metrics` (if enabled)
+        - **ReDoc**: `/redoc` (alternative documentation)
+        """,
         version=settings.app_version,
         debug=settings.debug,
         lifespan=lifespan,
         docs_url="/docs" if settings.is_development() else None,
         redoc_url="/redoc" if settings.is_development() else None,
+        swagger_ui_parameters={
+            "deepLinking": True,
+            "displayRequestDuration": True,
+            "docExpansion": "list",
+            "operationsSorter": "method",
+            "filter": True,
+            "showExtensions": True,
+            "showCommonExtensions": True,
+            "tryItOutEnabled": True,
+        },
+        contact={
+            "name": "Poon AI Service Team",
+            "url": "https://github.com/your-org/poon-ai-service",
+            "email": "support@poon-ai.com",
+        },
+        license_info={
+            "name": "MIT License",
+            "url": "https://opensource.org/licenses/MIT",
+        },
+        terms_of_service="https://poon-ai.com/terms",
+        openapi_tags=[
+            {
+                "name": "Root",
+                "description": "Root endpoints and service information",
+            },
+            {
+                "name": "Health",
+                "description": "Health checks and service status monitoring",
+            },
+            {
+                "name": "Spending",
+                "description": "Spending entry management and AI-powered text processing",
+            },
+            {
+                "name": "AI Processing",
+                "description": "Advanced AI-powered text processing and analysis",
+            },
+            {
+                "name": "Documentation",
+                "description": "API documentation, examples, and tutorials",
+            },
+            {
+                "name": "Monitoring",
+                "description": "Metrics and performance monitoring endpoints",
+            },
+        ],
     )
 
     # Add CORS middleware

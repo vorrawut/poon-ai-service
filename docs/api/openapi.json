@@ -1,0 +1,1402 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Poon AI Service",
+    "description": "\n        \ud83e\udd99 **Poon AI Service** - Advanced AI-Powered Spending Analysis Microservice\n        \n        ## \ud83d\ude80 Features\n        \n        - **\ud83e\udd16 AI-Powered Text Processing**: Uses local Llama 3.2 model for intelligent spending analysis\n        - **\ud83d\udd0d OCR Integration**: Tesseract OCR for receipt and document processing\n        - **\ud83d\udcca Spending Analytics**: Comprehensive spending entry management and categorization\n        - **\ud83c\udfd7\ufe0f Clean Architecture**: Domain-driven design with CQRS pattern\n        - **\ud83d\udcc8 Monitoring**: Built-in Prometheus metrics and health checks\n        - **\ud83d\udd12 Secure**: Input validation, error handling, and security best practices\n        \n        ## \ud83d\udee0\ufe0f Technology Stack\n        \n        - **FastAPI** - Modern, fast web framework\n        - **Ollama + Llama 3.2** - Local AI model for text processing\n        - **Tesseract OCR** - Optical character recognition\n        - **SQLite** - Lightweight database\n        - **Pydantic** - Data validation and serialization\n        - **Prometheus** - Metrics and monitoring\n        \n        ## \ud83d\udcd6 API Documentation\n        \n        This interactive documentation provides:\n        - Complete API reference with examples\n        - Request/response schemas\n        - Error handling documentation\n        - Live testing capabilities\n        \n        ## \ud83d\udd17 Useful Links\n        \n        - **Health Check**: `/health`\n        - **Detailed Health**: `/api/v1/health/detailed`\n        - **Metrics**: `/metrics` (if enabled)\n        - **ReDoc**: `/redoc` (alternative documentation)\n        ",
+    "termsOfService": "https://poon-ai.com/terms",
+    "contact": {
+      "name": "Poon AI Service Team",
+      "url": "https://github.com/your-org/poon-ai-service",
+      "email": "support@poon-ai.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/health/": {
+      "get": {
+        "tags": ["Health", "Health"],
+        "summary": "Basic Health Check",
+        "description": "**Basic health check endpoint** for monitoring service availability.\n    \n    This endpoint provides essential service information and confirms the service is running.\n    It's designed for simple uptime monitoring and load balancer health checks.\n    \n    **Use Cases:**\n    - Load balancer health checks\n    - Simple monitoring systems\n    - Quick service status verification\n    \n    **Response includes:**\n    - Service status (always \"healthy\" if responding)\n    - Service name and version\n    - Current deployment environment",
+        "operationId": "health_check_api_v1_health__get",
+        "responses": {
+          "200": {
+            "description": "Service is healthy and operational",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Service is healthy",
+                  "timestamp": "2024-01-15T12:35:00Z",
+                  "service": "Poon AI Service",
+                  "version": "1.0.0",
+                  "environment": "production"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/detailed": {
+      "get": {
+        "tags": ["Health", "Health"],
+        "summary": "Detailed Health Check",
+        "description": "**Comprehensive health check** with dependency status and feature availability.\n    \n    This endpoint provides detailed information about all service dependencies,\n    feature flags, and system capabilities. It's designed for comprehensive\n    monitoring and troubleshooting.\n    \n    **Dependency Checks:**\n    - **Database**: SQLite connection and query capability\n    - **Llama AI**: Ollama service availability and model status  \n    - **OCR**: Tesseract availability and language support\n    \n    **Feature Flags:**\n    - AI enhancement capabilities\n    - Batch processing availability\n    - OCR processing status\n    - Metrics collection status\n    \n    **Status Levels:**\n    - `healthy`: All systems operational\n    - `degraded`: Some non-critical services unavailable\n    - `unhealthy`: Critical services failing",
+        "operationId": "detailed_health_check_api_v1_health_detailed_get",
+        "responses": {
+          "200": {
+            "description": "Detailed health status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailedHealthResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Detailed health check completed",
+                  "timestamp": "2024-01-15T12:35:00Z",
+                  "service": "Poon AI Service",
+                  "version": "1.0.0",
+                  "environment": "production",
+                  "dependencies": {
+                    "database": {
+                      "status": "healthy",
+                      "type": "sqlite"
+                    },
+                    "llama": {
+                      "status": "healthy",
+                      "model": "llama3.2:3b",
+                      "url": "http://localhost:11434"
+                    },
+                    "ocr": {
+                      "status": "healthy",
+                      "type": "tesseract"
+                    }
+                  },
+                  "features": {
+                    "ai_enhancement": true,
+                    "batch_processing": true,
+                    "ocr_processing": true,
+                    "metrics_enabled": true
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service degraded - some dependencies unavailable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "degraded",
+                  "message": "Some services are unavailable",
+                  "dependencies": {
+                    "database": {
+                      "status": "healthy",
+                      "type": "sqlite"
+                    },
+                    "llama": {
+                      "status": "unavailable",
+                      "error": "Connection refused"
+                    },
+                    "ocr": {
+                      "status": "healthy",
+                      "type": "tesseract"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "tags": ["Health", "Health"],
+        "summary": "Readiness Check",
+        "description": "**Kubernetes readiness probe** endpoint.\n    \n    This endpoint checks if the service is ready to accept traffic.\n    It verifies that essential services (like the database) are initialized\n    and the service can handle requests.\n    \n    **Readiness Criteria:**\n    - Database repository is initialized\n    - Core services are available\n    \n    **Usage:**\n    - Kubernetes readiness probes\n    - Load balancer health checks\n    - Deployment verification",
+        "operationId": "readiness_check_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Service is ready to accept traffic",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                },
+                "example": {
+                  "status": "ready",
+                  "ready": true
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service is not ready",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "not_ready",
+                  "ready": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "tags": ["Health", "Health"],
+        "summary": "Liveness Check",
+        "description": "**Kubernetes liveness probe** endpoint.\n    \n    This endpoint confirms the service process is alive and responding.\n    If this endpoint fails to respond, it indicates the service should be restarted.\n    \n    **Purpose:**\n    - Kubernetes liveness probes\n    - Process monitoring\n    - Restart triggers for unhealthy services\n    \n    **Response:**\n    - Always returns \"alive\" if the service is responding\n    - Non-response indicates service failure",
+        "operationId": "liveness_check_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Service is alive and responding",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessResponse"
+                },
+                "example": {
+                  "status": "alive"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/spending/": {
+      "get": {
+        "tags": ["Spending", "Spending"],
+        "summary": "List Spending Entries",
+        "description": "**Retrieve a list of spending entries** with pagination support.\n    \n    This endpoint returns spending entries stored in the system, allowing you to:\n    - Browse all spending transactions\n    - Implement pagination for large datasets\n    - Get summary statistics (total count)\n    \n    **Features:**\n    - **Pagination**: Built-in limit/offset support\n    - **Metadata**: Total count and pagination info\n    - **Performance**: Optimized queries for large datasets\n    \n    **Default Behavior:**\n    - Returns up to 10 entries by default\n    - Sorted by creation date (newest first)\n    - Includes all entry details and metadata\n    \n    **Future Enhancements:**\n    - Filtering by category, date range, merchant\n    - Sorting options (amount, date, merchant)\n    - Search functionality",
+        "operationId": "get_spending_entries_api_v1_spending__get",
+        "responses": {
+          "200": {
+            "description": "Spending entries retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpendingListResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Spending entries retrieved successfully",
+                  "timestamp": "2024-01-15T12:35:00Z",
+                  "data": [
+                    {
+                      "id": "123e4567-e89b-12d3-a456-426614174000",
+                      "amount": 85.5,
+                      "currency": "THB",
+                      "merchant": "Central World Food Court",
+                      "description": "Lunch with colleagues",
+                      "category": "Food & Dining",
+                      "payment_method": "Credit Card",
+                      "transaction_date": "2024-01-15T12:30:00Z",
+                      "created_at": "2024-01-15T12:35:00Z",
+                      "updated_at": "2024-01-15T12:35:00Z",
+                      "confidence": 0.95,
+                      "processing_method": "ai_enhanced"
+                    }
+                  ],
+                  "entries": [],
+                  "total_count": 1,
+                  "has_more": false,
+                  "pagination": {
+                    "limit": 10,
+                    "offset": 0,
+                    "total": 1
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable - database not accessible",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Repository not available",
+                  "error_code": "SERVICE_UNAVAILABLE"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Database connection failed",
+                  "error_code": "INTERNAL_ERROR"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Spending", "Spending"],
+        "summary": "Create Spending Entry",
+        "description": "**Create a new spending entry** with manual input data.\n    \n    This endpoint allows you to manually create spending entries by providing\n    transaction details. It's perfect for:\n    - Manual expense tracking\n    - Importing data from other systems\n    - Creating entries when AI processing isn't needed\n    \n    **Required Fields:**\n    - **amount**: Transaction amount (must be positive)\n    - **merchant**: Store or vendor name\n    - **description**: Transaction details or notes\n    \n    **Optional Fields:**\n    - **category**: Spending category (defaults to \"Miscellaneous\")\n    - **payment_method**: How the payment was made (defaults to \"Cash\")\n    - **currency**: Currency code (defaults to \"THB\")\n    \n    **Validation:**\n    - Amount must be positive\n    - Merchant and description cannot be empty\n    - Currency must be valid ISO 4217 code\n    - All text fields have length limits\n    \n    **Processing:**\n    - Automatic timestamp assignment\n    - UUID generation for unique identification\n    - Data validation and sanitization",
+        "operationId": "create_spending_entry_api_v1_spending__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpendingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Spending entry created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSpendingResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Spending entry created successfully",
+                  "timestamp": "2024-01-15T12:35:00Z",
+                  "id": "123e4567-e89b-12d3-a456-426614174000",
+                  "entry_id": "123e4567-e89b-12d3-a456-426614174000"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - invalid input data",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Amount must be positive",
+                  "error_code": "VALIDATION_ERROR",
+                  "details": {
+                    "field": "amount",
+                    "value": -10.5,
+                    "constraint": "must be greater than 0"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service unavailable - database not accessible",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Repository not available",
+                  "error_code": "SERVICE_UNAVAILABLE"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Failed to save spending entry",
+                  "error_code": "INTERNAL_ERROR"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/spending/process/text": {
+      "post": {
+        "tags": ["Spending", "Spending", "AI Processing"],
+        "summary": "AI Text Processing",
+        "description": "**Process natural language text** into structured spending entries using AI.\n    \n    This is the **core AI feature** of the service! It uses a local Llama 3.2 model\n    to intelligently parse natural language descriptions of spending transactions\n    and automatically create structured spending entries.\n    \n    **\ud83e\udd16 AI Capabilities:**\n    - **Amount Extraction**: Recognizes various currency formats and amounts\n    - **Merchant Identification**: Identifies store names and vendors\n    - **Category Classification**: Automatically categorizes spending types\n    - **Payment Method Detection**: Recognizes payment methods from context\n    - **Multi-language Support**: Supports English, Thai, and other languages\n    \n    **\ud83d\udcdd Input Examples:**\n    - \"Bought coffee at Starbucks for $5.50\"\n    - \"\u0e0b\u0e37\u0e49\u0e2d\u0e01\u0e32\u0e41\u0e1f\u0e17\u0e35\u0e48\u0e2a\u0e15\u0e32\u0e23\u0e4c\u0e1a\u0e31\u0e04\u0e2a\u0e4c 120 \u0e1a\u0e32\u0e17 \u0e14\u0e49\u0e27\u0e22\u0e1a\u0e31\u0e15\u0e23\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15\"\n    - \"Paid 25 euros for lunch at Italian restaurant\"\n    - \"Gas station fill-up $45.20 with debit card\"\n    \n    **\ud83c\udfaf Processing Flow:**\n    1. **Text Analysis**: AI analyzes the natural language input\n    2. **Data Extraction**: Extracts structured spending information\n    3. **Validation**: Validates and normalizes extracted data\n    4. **Entry Creation**: Automatically creates a spending entry\n    5. **Confidence Scoring**: Provides confidence metrics\n    \n    **\u26a1 Performance:**\n    - Typical processing time: 1-3 seconds\n    - High accuracy for common spending patterns\n    - Confidence scores help identify uncertain extractions\n    \n    **\ud83d\udd27 Configuration:**\n    - Requires Ollama service to be running\n    - Uses Llama 3.2:3b model by default\n    - Supports custom language preferences",
+        "operationId": "process_text_api_v1_spending_process_text_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Text processed successfully and spending entry created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessTextResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "message": "Text processed and spending entry created",
+                  "timestamp": "2024-01-15T12:35:00Z",
+                  "entry_id": "123e4567-e89b-12d3-a456-426614174000",
+                  "parsed_data": {
+                    "amount": 85.5,
+                    "currency": "THB",
+                    "merchant": "Central World Food Court",
+                    "category": "Food & Dining",
+                    "payment_method": "Credit Card",
+                    "description": "Lunch with colleagues",
+                    "confidence": 0.95
+                  },
+                  "confidence": 0.95,
+                  "processing_time_ms": 1250
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or AI processing failed",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "Unable to extract spending information from text",
+                  "error_code": "AI_PROCESSING_FAILED",
+                  "details": {
+                    "input_text": "random gibberish text",
+                    "reason": "No spending-related information detected"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI service unavailable",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "AI service not available",
+                  "error_code": "SERVICE_UNAVAILABLE",
+                  "details": {
+                    "service": "ollama",
+                    "status": "offline"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal processing error",
+            "content": {
+              "application/json": {
+                "example": {
+                  "status": "error",
+                  "message": "AI model processing failed",
+                  "error_code": "INTERNAL_ERROR"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/docs/examples": {
+      "get": {
+        "tags": ["Documentation", "Documentation"],
+        "summary": "API Usage Examples",
+        "description": "Interactive examples and tutorials for using the Poon AI Service API",
+        "operationId": "api_examples_api_v1_docs_examples_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/docs/status": {
+      "get": {
+        "tags": ["Documentation", "Documentation"],
+        "summary": "API Status Dashboard",
+        "description": "Simple status dashboard showing service information and quick links",
+        "operationId": "api_status_api_v1_docs_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Api Status Api V1 Docs Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health Check",
+        "description": "Health check endpoint.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Health Check Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": ["Root"],
+        "summary": "Root",
+        "description": "Root endpoint with service information.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Root  Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateSpendingRequest": {
+        "properties": {
+          "amount": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Amount",
+            "description": "Spending amount (must be positive)",
+            "examples": [12.5, 1250.0, 99.99]
+          },
+          "merchant": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Merchant",
+            "description": "Merchant or vendor name",
+            "examples": [
+              "Starbucks",
+              "Amazon",
+              "Shell Gas Station",
+              "\u0e23\u0e49\u0e32\u0e19\u0e2d\u0e32\u0e2b\u0e32\u0e23\u0e44\u0e17\u0e22"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Description",
+            "description": "Transaction description or notes",
+            "examples": [
+              "Morning coffee",
+              "Weekly groceries",
+              "Gas for road trip",
+              "\u0e0b\u0e37\u0e49\u0e2d\u0e02\u0e2d\u0e07\u0e43\u0e0a\u0e49\u0e43\u0e19\u0e1a\u0e49\u0e32\u0e19"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Category",
+            "description": "Spending category",
+            "default": "Miscellaneous",
+            "examples": [
+              "Food & Dining",
+              "Transportation",
+              "Shopping",
+              "Entertainment"
+            ]
+          },
+          "payment_method": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Payment Method",
+            "description": "Payment method used",
+            "default": "Cash",
+            "examples": [
+              "Cash",
+              "Credit Card",
+              "Debit Card",
+              "Mobile Payment",
+              "Bank Transfer"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "maxLength": 3,
+            "minLength": 3,
+            "title": "Currency",
+            "description": "Currency code (ISO 4217)",
+            "default": "THB",
+            "examples": ["THB", "USD", "EUR", "JPY"]
+          }
+        },
+        "type": "object",
+        "required": ["amount", "merchant", "description"],
+        "title": "CreateSpendingRequest",
+        "description": "Request model for creating a spending entry.",
+        "examples": [
+          {
+            "amount": 85.5,
+            "category": "Food & Dining",
+            "currency": "THB",
+            "description": "Lunch with colleagues",
+            "merchant": "Central World Food Court",
+            "payment_method": "Credit Card"
+          },
+          {
+            "amount": 1200.0,
+            "category": "Transportation",
+            "currency": "THB",
+            "description": "Monthly transit pass",
+            "merchant": "BTS Skytrain",
+            "payment_method": "Mobile Payment"
+          }
+        ]
+      },
+      "CreateSpendingResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Always 'success' for successful operations",
+            "default": "success"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable message",
+            "examples": [
+              "Operation completed successfully",
+              "Validation error occurred"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Response timestamp in UTC"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Id",
+            "description": "Generated or affected resource ID",
+            "examples": ["123e4567-e89b-12d3-a456-426614174000"]
+          },
+          "entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Entry Id",
+            "description": "Created spending entry ID"
+          }
+        },
+        "type": "object",
+        "required": ["message", "id", "entry_id"],
+        "title": "CreateSpendingResponse",
+        "description": "Response for creating a spending entry.",
+        "example": {
+          "entry_id": "123e4567-e89b-12d3-a456-426614174000",
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "message": "Spending entry created successfully",
+          "status": "success",
+          "timestamp": "2024-01-15T12:35:00Z"
+        }
+      },
+      "DependencyStatus": {
+        "properties": {
+          "database": {
+            "$ref": "#/components/schemas/ServiceStatus",
+            "description": "Database service status"
+          },
+          "llama": {
+            "$ref": "#/components/schemas/ServiceStatus",
+            "description": "Llama AI service status"
+          },
+          "ocr": {
+            "$ref": "#/components/schemas/ServiceStatus",
+            "description": "OCR service status"
+          }
+        },
+        "type": "object",
+        "required": ["database", "llama", "ocr"],
+        "title": "DependencyStatus",
+        "description": "Dependency status for detailed health checks."
+      },
+      "DetailedHealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Response status",
+            "examples": ["success", "error", "partial"]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable message",
+            "examples": [
+              "Operation completed successfully",
+              "Validation error occurred"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Response timestamp in UTC"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service",
+            "description": "Service name",
+            "examples": ["Poon AI Service"]
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Service version",
+            "examples": ["1.0.0", "2.1.3-beta"]
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Deployment environment",
+            "examples": ["development", "staging", "production"]
+          },
+          "dependencies": {
+            "$ref": "#/components/schemas/DependencyStatus",
+            "description": "Status of all service dependencies"
+          },
+          "features": {
+            "$ref": "#/components/schemas/FeatureFlags",
+            "description": "Available features and capabilities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "service",
+          "version",
+          "environment",
+          "dependencies",
+          "features"
+        ],
+        "title": "DetailedHealthResponse",
+        "description": "Detailed health check response with dependencies."
+      },
+      "FeatureFlags": {
+        "properties": {
+          "ai_enhancement": {
+            "type": "boolean",
+            "title": "Ai Enhancement",
+            "description": "Whether AI text enhancement is enabled",
+            "examples": [true, false]
+          },
+          "batch_processing": {
+            "type": "boolean",
+            "title": "Batch Processing",
+            "description": "Whether batch processing is available",
+            "examples": [true, false]
+          },
+          "ocr_processing": {
+            "type": "boolean",
+            "title": "Ocr Processing",
+            "description": "Whether OCR processing is available",
+            "examples": [true, false]
+          },
+          "metrics_enabled": {
+            "type": "boolean",
+            "title": "Metrics Enabled",
+            "description": "Whether metrics collection is enabled",
+            "examples": [true, false]
+          }
+        },
+        "type": "object",
+        "required": [
+          "ai_enhancement",
+          "batch_processing",
+          "ocr_processing",
+          "metrics_enabled"
+        ],
+        "title": "FeatureFlags",
+        "description": "Feature flags and capabilities."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Response status",
+            "examples": ["success", "error", "partial"]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable message",
+            "examples": [
+              "Operation completed successfully",
+              "Validation error occurred"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Response timestamp in UTC"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service",
+            "description": "Service name",
+            "examples": ["Poon AI Service"]
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Service version",
+            "examples": ["1.0.0", "2.1.3-beta"]
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Deployment environment",
+            "examples": ["development", "staging", "production"]
+          }
+        },
+        "type": "object",
+        "required": ["status", "message", "service", "version", "environment"],
+        "title": "HealthResponse",
+        "description": "Basic health check response."
+      },
+      "LivenessResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Liveness status - always 'alive' if responding",
+            "default": "alive"
+          }
+        },
+        "type": "object",
+        "title": "LivenessResponse",
+        "description": "Liveness check response for Kubernetes."
+      },
+      "ParsedSpendingData": {
+        "properties": {
+          "amount": {
+            "type": "number",
+            "title": "Amount",
+            "description": "Extracted amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Detected currency"
+          },
+          "merchant": {
+            "type": "string",
+            "title": "Merchant",
+            "description": "Identified merchant"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Suggested category"
+          },
+          "payment_method": {
+            "type": "string",
+            "title": "Payment Method",
+            "description": "Detected payment method"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Generated description"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "AI confidence score (0.0 to 1.0)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "amount",
+          "currency",
+          "merchant",
+          "category",
+          "payment_method",
+          "description",
+          "confidence"
+        ],
+        "title": "ParsedSpendingData",
+        "description": "Parsed spending data from AI processing."
+      },
+      "ProcessTextRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Text",
+            "description": "Natural language text describing a spending transaction",
+            "examples": [
+              "Bought coffee at Starbucks for $5.50",
+              "\u0e0b\u0e37\u0e49\u0e2d\u0e01\u0e32\u0e41\u0e1f\u0e17\u0e35\u0e48\u0e2a\u0e15\u0e32\u0e23\u0e4c\u0e1a\u0e31\u0e04\u0e2a\u0e4c 120 \u0e1a\u0e32\u0e17 \u0e14\u0e49\u0e27\u0e22\u0e1a\u0e31\u0e15\u0e23\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15",
+              "Paid 25 euros for lunch at Italian restaurant",
+              "Gas station fill-up $45.20 with debit card"
+            ]
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 5,
+            "minLength": 2,
+            "title": "Language",
+            "description": "Language code for text processing (ISO 639-1)",
+            "default": "en",
+            "examples": ["en", "th", "es", "fr", "de"]
+          }
+        },
+        "type": "object",
+        "required": ["text"],
+        "title": "ProcessTextRequest",
+        "description": "Request model for processing natural language text.",
+        "examples": [
+          {
+            "language": "en",
+            "text": "Bought lunch at McDonald's for 150 baht with cash"
+          },
+          {
+            "language": "th",
+            "text": "\u0e0b\u0e37\u0e49\u0e2d\u0e19\u0e49\u0e33\u0e21\u0e31\u0e19\u0e17\u0e35\u0e48\u0e1b\u0e15\u0e17 800 \u0e1a\u0e32\u0e17 \u0e08\u0e48\u0e32\u0e22\u0e14\u0e49\u0e27\u0e22\u0e1a\u0e31\u0e15\u0e23\u0e40\u0e04\u0e23\u0e14\u0e34\u0e15"
+          }
+        ]
+      },
+      "ProcessTextResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Response status",
+            "examples": ["success", "error", "partial"]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable message",
+            "examples": [
+              "Operation completed successfully",
+              "Validation error occurred"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Response timestamp in UTC"
+          },
+          "entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Entry Id",
+            "description": "Created spending entry ID"
+          },
+          "parsed_data": {
+            "$ref": "#/components/schemas/ParsedSpendingData",
+            "description": "AI-parsed spending information"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "description": "Overall processing confidence"
+          },
+          "processing_time_ms": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Processing Time Ms",
+            "description": "Processing time in milliseconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "entry_id",
+          "parsed_data",
+          "confidence",
+          "processing_time_ms"
+        ],
+        "title": "ProcessTextResponse",
+        "description": "Response for text processing endpoint.",
+        "example": {
+          "confidence": 0.95,
+          "entry_id": "123e4567-e89b-12d3-a456-426614174000",
+          "message": "Text processed and spending entry created",
+          "parsed_data": {
+            "amount": 85.5,
+            "category": "Food & Dining",
+            "confidence": 0.95,
+            "currency": "THB",
+            "description": "Lunch with colleagues",
+            "merchant": "Central World Food Court",
+            "payment_method": "Credit Card"
+          },
+          "processing_time_ms": 1250,
+          "status": "success",
+          "timestamp": "2024-01-15T12:35:00Z"
+        }
+      },
+      "ReadinessResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Readiness status",
+            "examples": ["ready", "not_ready"]
+          },
+          "ready": {
+            "type": "boolean",
+            "title": "Ready",
+            "description": "Whether the service is ready to accept traffic"
+          }
+        },
+        "type": "object",
+        "required": ["status", "ready"],
+        "title": "ReadinessResponse",
+        "description": "Readiness check response for Kubernetes."
+      },
+      "ServiceStatus": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Service status",
+            "examples": ["healthy", "unhealthy", "degraded", "unavailable"]
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Type",
+            "description": "Service type or implementation",
+            "examples": ["sqlite", "tesseract", "llama3.2"]
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url",
+            "description": "Service URL if applicable",
+            "examples": ["http://localhost:11434"]
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "AI model name if applicable",
+            "examples": ["llama3.2:3b"]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error",
+            "description": "Error message if service is unhealthy"
+          }
+        },
+        "type": "object",
+        "required": ["status"],
+        "title": "ServiceStatus",
+        "description": "Service status information."
+      },
+      "SpendingEntryResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id",
+            "description": "Unique entry identifier"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount",
+            "description": "Spending amount"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Currency",
+            "description": "Currency code"
+          },
+          "merchant": {
+            "type": "string",
+            "title": "Merchant",
+            "description": "Merchant name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Transaction description"
+          },
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "Spending category"
+          },
+          "payment_method": {
+            "type": "string",
+            "title": "Payment Method",
+            "description": "Payment method"
+          },
+          "transaction_date": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Transaction Date",
+            "description": "Transaction timestamp"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "Entry creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "Last update timestamp"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence",
+            "description": "AI processing confidence score"
+          },
+          "processing_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processing Method",
+            "description": "How the entry was processed",
+            "examples": ["manual", "ai_enhanced", "ocr_processed"]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "amount",
+          "currency",
+          "merchant",
+          "description",
+          "category",
+          "payment_method",
+          "transaction_date",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SpendingEntryResponse",
+        "description": "Response model for a single spending entry.",
+        "example": {
+          "amount": 85.5,
+          "category": "Food & Dining",
+          "confidence": 0.95,
+          "created_at": "2024-01-15T12:35:00Z",
+          "currency": "THB",
+          "description": "Lunch with colleagues",
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "merchant": "Central World Food Court",
+          "payment_method": "Credit Card",
+          "processing_method": "ai_enhanced",
+          "transaction_date": "2024-01-15T12:30:00Z",
+          "updated_at": "2024-01-15T12:35:00Z"
+        }
+      },
+      "SpendingListResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Response status",
+            "examples": ["success", "error", "partial"]
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Human-readable message",
+            "examples": [
+              "Operation completed successfully",
+              "Validation error occurred"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Response timestamp in UTC"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SpendingEntryResponse"
+            },
+            "type": "array",
+            "title": "Data",
+            "description": "List of items"
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count",
+            "description": "Total number of items available",
+            "examples": [0, 42, 1337]
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More",
+            "description": "Whether there are more items available"
+          },
+          "pagination": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Pagination",
+            "description": "Pagination information",
+            "examples": [
+              {
+                "limit": 10,
+                "offset": 0,
+                "total": 42
+              }
+            ]
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/SpendingEntryResponse"
+            },
+            "type": "array",
+            "title": "Entries",
+            "description": "List of spending entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "message",
+          "data",
+          "total_count",
+          "has_more",
+          "pagination",
+          "entries"
+        ],
+        "title": "SpendingListResponse",
+        "description": "Response for listing spending entries.",
+        "example": {
+          "data": [
+            {
+              "amount": 85.5,
+              "category": "Food & Dining",
+              "confidence": 0.95,
+              "created_at": "2024-01-15T12:35:00Z",
+              "currency": "THB",
+              "description": "Lunch with colleagues",
+              "id": "123e4567-e89b-12d3-a456-426614174000",
+              "merchant": "Central World Food Court",
+              "payment_method": "Credit Card",
+              "processing_method": "ai_enhanced",
+              "transaction_date": "2024-01-15T12:30:00Z",
+              "updated_at": "2024-01-15T12:35:00Z"
+            }
+          ],
+          "entries": [],
+          "has_more": false,
+          "message": "Spending entries retrieved successfully",
+          "pagination": {
+            "limit": 10,
+            "offset": 0,
+            "total": 1
+          },
+          "status": "success",
+          "timestamp": "2024-01-15T12:35:00Z",
+          "total_count": 1
+        }
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": ["loc", "msg", "type"],
+        "title": "ValidationError"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Root",
+      "description": "Root endpoints and service information"
+    },
+    {
+      "name": "Health",
+      "description": "Health checks and service status monitoring"
+    },
+    {
+      "name": "Spending",
+      "description": "Spending entry management and AI-powered text processing"
+    },
+    {
+      "name": "AI Processing",
+      "description": "Advanced AI-powered text processing and analysis"
+    },
+    {
+      "name": "Documentation",
+      "description": "API documentation, examples, and tutorials"
+    },
+    {
+      "name": "Monitoring",
+      "description": "Metrics and performance monitoring endpoints"
+    }
+  ]
+}
