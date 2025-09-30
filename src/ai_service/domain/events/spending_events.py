@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from .base import SpendingDomainEvent
@@ -12,9 +12,9 @@ from .base import SpendingDomainEvent
 class SpendingEntryCreated(SpendingDomainEvent):
     """Event fired when a new spending entry is created."""
 
-    amount: float
-    merchant: str
-    category: str
+    amount: float = field(default=0.0)
+    merchant: str = field(default="")
+    category: str = field(default="")
 
     @property
     def event_type(self) -> str:
@@ -35,9 +35,9 @@ class SpendingEntryCreated(SpendingDomainEvent):
 class SpendingEntryUpdated(SpendingDomainEvent):
     """Event fired when a spending entry is updated."""
 
-    field_updated: str
-    old_value: Any
-    new_value: Any
+    field_updated: str = field(default="")
+    old_value: Any = field(default=None)
+    new_value: Any = field(default=None)
 
     @property
     def event_type(self) -> str:
@@ -77,10 +77,10 @@ class SpendingEntryDeleted(SpendingDomainEvent):
 class SpendingEntryAIEnhanced(SpendingDomainEvent):
     """Event fired when a spending entry is enhanced with AI."""
 
-    ai_model: str
-    confidence_before: float
-    confidence_after: float
-    processing_time_ms: int
+    ai_model: str = field(default="")
+    confidence_before: float = field(default=0.0)
+    confidence_after: float = field(default=0.0)
+    processing_time_ms: int = field(default=0)
 
     @property
     def event_type(self) -> str:
@@ -102,11 +102,11 @@ class SpendingEntryAIEnhanced(SpendingDomainEvent):
 class SpendingBatchProcessed(SpendingDomainEvent):
     """Event fired when a batch of spending entries is processed."""
 
-    batch_id: str
-    total_entries: int
-    successful_entries: int
-    failed_entries: int
-    processing_method: str
+    batch_id: str = field(default="")
+    total_entries: int = field(default=0)
+    successful_entries: int = field(default=0)
+    failed_entries: int = field(default=0)
+    processing_method: str = field(default="")
 
     @property
     def event_type(self) -> str:

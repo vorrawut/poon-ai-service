@@ -107,10 +107,10 @@ class TestSpendingEntry:
         original_updated_at = entry.updated_at
         new_amount = Money.from_float(150.0, Currency.THB)
 
-        entry.update_amount(new_amount)
+        updated_entry = entry.update_amount(new_amount)
 
-        assert entry.amount.to_float() == 150.0
-        assert entry.updated_at > original_updated_at
+        assert updated_entry.amount.to_float() == 150.0
+        assert updated_entry.updated_at > original_updated_at
 
     def test_spending_entry_serialization(self):
         """Test spending entry serialization."""

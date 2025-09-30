@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/{{apiVersion}}/spending
+  url: {{baseUrl}}/api/{{apiVersion}}/spending/
   body: none
   auth: none
 }
@@ -20,19 +20,24 @@ tests {
     expect(res.getStatus()).to.equal(200);
   });
 
-  test("Response is an array", function() {
-    expect(res.getBody()).to.be.an("array");
+  test("Response has correct structure", function() {
+    const body = res.getBody();
+    expect(body.entries).to.be.an("array");
+    expect(body.total_count).to.be.a("number");
+    expect(body.status).to.equal("success");
   });
 
   test("Each entry has required fields", function() {
-    const entries = res.getBody();
-    if (entries.length > 0) {
-      const entry = entries[0];
+    const body = res.getBody();
+    if (body.entries.length > 0) {
+      const entry = body.entries[0];
       expect(entry.id).to.be.a("string");
       expect(entry.amount).to.be.a("number");
       expect(entry.merchant).to.be.a("string");
       expect(entry.category).to.be.a("string");
       expect(entry.transaction_date).to.be.a("string");
+      expect(entry.currency).to.be.a("string");
+      expect(entry.payment_method).to.be.a("string");
     }
   });
 }

@@ -1,11 +1,11 @@
 """Logging middleware."""
 
-from collections.abc import Callable
 import time
+from collections.abc import Awaitable, Callable
 
+import structlog
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-import structlog
 
 logger = structlog.get_logger(__name__)
 
@@ -13,7 +13,9 @@ logger = structlog.get_logger(__name__)
 class LoggingMiddleware(BaseHTTPMiddleware):
     """Middleware for request/response logging."""
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         """Log request and response details."""
         start_time = time.time()
 
@@ -28,7 +30,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         )
 
         # Process request
-        response = await call_next(request)
+        response: Response = await call_next(request)
 
         # Calculate duration
         duration_ms = (time.time() - start_time) * 1000

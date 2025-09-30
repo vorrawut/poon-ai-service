@@ -4,10 +4,10 @@ FastAPI service for OCR, NLP, and AI-powered spending entry parsing
 Supports local processing with OpenAI fallback for cost efficiency
 """
 
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
-import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,15 +17,15 @@ from pydantic import BaseModel
 # Request Models
 class NLPParseRequest(BaseModel):
     text: str
-    language: Optional[str] = None
+    language: str | None = None
     use_local_only: bool = True
 
 
 class TextProcessingRequest(BaseModel):
     text: str
-    language: Optional[str] = None
+    language: str | None = None
     use_ai_fallback: bool = True
-    context: Optional[dict[str, Any]] = None
+    context: dict[str, Any] | None = None
 
 
 class BatchProcessingRequest(BaseModel):
@@ -570,9 +570,9 @@ async def store_spending_entry(entry: SpendingEntry):
 async def get_spending_entries(
     limit: int = 100,
     offset: int = 0,
-    category: Optional[str] = None,
-    date_from: Optional[str] = None,
-    date_to: Optional[str] = None,
+    category: str | None = None,
+    date_from: str | None = None,
+    date_to: str | None = None,
 ):
     """Get spending entries with filtering"""
     try:

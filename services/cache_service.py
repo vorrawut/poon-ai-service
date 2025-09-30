@@ -7,7 +7,7 @@ import hashlib
 import json
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 class CacheService:
     """Simple cache service with in-memory fallback"""
 
-    def __init__(self, redis_url: Optional[str] = None):
+    def __init__(self, redis_url: str | None = None):
         self.redis_url = redis_url
         self.redis_client = None
         self.memory_cache: dict[str, dict[str, Any]] = {}
@@ -41,7 +41,7 @@ class CacheService:
         """Generate consistent cache key"""
         return hashlib.md5(key.encode()).hexdigest()
 
-    async def get(self, key: str) -> Optional[dict[str, Any]]:
+    async def get(self, key: str) -> dict[str, Any] | None:
         """Get value from cache"""
         cache_key = self._generate_key(key)
 
@@ -113,7 +113,7 @@ class CacheService:
         self.memory_cache.clear()
 
     # Redis methods
-    async def _get_from_redis(self, key: str) -> Optional[dict[str, Any]]:
+    async def _get_from_redis(self, key: str) -> dict[str, Any] | None:
         """Get from Redis"""
         try:
             value = self.redis_client.get(key)
@@ -150,7 +150,7 @@ class CacheService:
             return False
 
     # Memory cache methods
-    def _get_from_memory(self, key: str) -> Optional[dict[str, Any]]:
+    def _get_from_memory(self, key: str) -> dict[str, Any] | None:
         """Get from memory cache"""
         if key in self.memory_cache:
             entry = self.memory_cache[key]

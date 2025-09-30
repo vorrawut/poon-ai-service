@@ -4,10 +4,10 @@ Local processing with pattern matching and ML models
 Cost-efficient approach before AI fallback
 """
 
-from datetime import datetime, timedelta
 import logging
 import re
-from typing import Any, Optional
+from datetime import datetime, timedelta
+from typing import Any
 
 from models.spending_models import NLPResult
 
@@ -384,7 +384,7 @@ class NLPService:
             logger.error(f"NLP parsing failed: {e!s}")
             raise Exception(f"NLP parsing failed: {e!s}")
 
-    def _extract_amount(self, text: str) -> tuple[Optional[float], float]:
+    def _extract_amount(self, text: str) -> tuple[float | None, float]:
         """Extract amount from text"""
         for pattern in self.patterns["amount"]:
             match = re.search(pattern, text, re.IGNORECASE)
@@ -399,7 +399,7 @@ class NLPService:
                     continue
         return None, 0.0
 
-    def _extract_merchant(self, text: str) -> tuple[Optional[str], float]:
+    def _extract_merchant(self, text: str) -> tuple[str | None, float]:
         """Extract and normalize merchant name"""
         # First, check against known merchants
         for merchant_key, merchant_data in self.merchant_db.items():
@@ -420,7 +420,7 @@ class NLPService:
 
     def _predict_category(
         self, text: str, merchant: str = None
-    ) -> tuple[Optional[str], Optional[str], float]:
+    ) -> tuple[str | None, str | None, float]:
         """Predict category based on text and merchant"""
         # First, check merchant database
         if merchant:
@@ -451,7 +451,7 @@ class NLPService:
 
         return None, None, 0.0
 
-    def _extract_date(self, text: str) -> tuple[Optional[datetime], float]:
+    def _extract_date(self, text: str) -> tuple[datetime | None, float]:
         """Extract date from text"""
         now = datetime.now()
 
@@ -484,7 +484,7 @@ class NLPService:
 
         return None, 0.0
 
-    def _extract_payment_method(self, text: str) -> tuple[Optional[str], float]:
+    def _extract_payment_method(self, text: str) -> tuple[str | None, float]:
         """Extract payment method from text"""
         for pattern in self.patterns["payment_method"]:
             match = re.search(pattern, text, re.IGNORECASE)

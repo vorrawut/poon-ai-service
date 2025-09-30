@@ -1,43 +1,45 @@
 meta {
-  name: Parse Text
+  name: Parse Text (via Text Processing)
   type: http
   seq: 1
 }
 
 post {
-  url: {{baseUrl}}/nlp/parse
+  url: {{baseUrl}}/api/{{apiVersion}}/spending/process/text
   body: json
+  auth: none
 }
 
 body:json {
-  "text": "Coffee at Starbucks 120 baht by credit card",
-  "language": "en",
-  "use_local_only": true
-}
-
-assert {
-  res.status: eq 200
-  res.body.confidence: isNumber
+  {
+    "text": "Coffee at Starbucks 120 baht by credit card",
+    "language": "en"
+  }
 }
 
 tests {
   test("NLP should parse successfully", function() {
-    expect(res.status).to.equal(200);
+    expect(res.getStatus()).to.equal(200);
   });
 
   test("Should return confidence score", function() {
-    expect(res.body.confidence).to.be.a("number");
-    expect(res.body.confidence).to.be.at.least(0);
-    expect(res.body.confidence).to.be.at.most(1);
+    const body = res.getBody();
+    expect(body.confidence).to.be.a("number");
+    expect(body.confidence).to.be.at.least(0);
+    expect(body.confidence).to.be.at.most(1);
   });
 
   test("Should extract spending information", function() {
-    expect(res.body).to.have.property("merchant");
-    expect(res.body).to.have.property("amount");
-    expect(res.body).to.have.property("category");
+    const body = res.getBody();
+    expect(body.parsed_data.merchant).to.be.a("string");
+    expect(body.parsed_data.amount).to.be.a("number");
+    expect(body.parsed_data.category).to.be.a("string");
   });
 
-  test("Should have extraction details", function() {
-    expect(res.body.extraction_details).to.be.an("object");
+  test("Should create spending entry", function() {
+    const body = res.getBody();
+    expect(body.entry_id).to.be.a("string");
+    expect(body.message).to.be.a("string");
+    expect(body.status).to.equal("success");
   });
 }

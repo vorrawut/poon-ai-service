@@ -5,9 +5,9 @@ Cost-optimized approach
 """
 
 import asyncio
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from typing import Any
 
 import openai
@@ -474,7 +474,7 @@ class AIService:
 
                 return response.choices[0].message.content.strip()
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(
                     f"OpenAI request timeout, attempt {attempt + 1}/{self.max_retries}"
                 )

@@ -9,11 +9,11 @@ from .spending_queries import (
 )
 
 __all__ = [
+    "GetSpendingEntriesQuery",
+    "GetSpendingEntriesQueryHandler",
+    "GetSpendingEntryByIdQuery",
+    "GetSpendingEntryByIdQueryHandler",
     "Query",
     "QueryHandler",
     "QueryResult",
-    "GetSpendingEntryByIdQuery",
-    "GetSpendingEntryByIdQueryHandler",
-    "GetSpendingEntriesQuery",
-    "GetSpendingEntriesQueryHandler",
 ]

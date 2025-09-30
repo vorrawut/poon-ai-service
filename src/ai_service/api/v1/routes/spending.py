@@ -1,5 +1,7 @@
 """Spending-related API endpoints."""
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -26,7 +28,7 @@ class ProcessTextRequest(BaseModel):
 
 
 @router.get("/")
-async def get_spending_entries(request: Request) -> dict:
+async def get_spending_entries(request: Request) -> dict[str, Any]:
     """Get all spending entries."""
     try:
         if (
@@ -53,7 +55,7 @@ async def get_spending_entries(request: Request) -> dict:
 @router.post("/")
 async def create_spending_entry(
     request: Request, spending_data: CreateSpendingRequest
-) -> dict:
+) -> dict[str, Any]:
     """Create a new spending entry."""
     try:
         from datetime import datetime
@@ -103,7 +105,9 @@ async def create_spending_entry(
 
 
 @router.post("/process/text")
-async def process_text(request: Request, text_data: ProcessTextRequest) -> dict:
+async def process_text(
+    request: Request, text_data: ProcessTextRequest
+) -> dict[str, Any]:
     """Process natural language text into spending entry."""
     try:
         if (

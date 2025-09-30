@@ -5,10 +5,10 @@ Cost-free alternative to OpenAI with full local processing
 """
 
 import asyncio
-from datetime import datetime
 import json
 import logging
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
 
 import aiohttp
 
@@ -125,7 +125,7 @@ Focus on practical, culturally appropriate advice for Thai users.""",
 
     async def _call_llama(
         self, prompt: str, system_prompt: str, max_tokens: int = 500
-    ) -> Optional[str]:
+    ) -> str | None:
         """Make API call to local Llama via Ollama"""
         for attempt in range(self.max_retries):
             try:
@@ -153,7 +153,7 @@ Focus on practical, culturally appropriate advice for Thai users.""",
                         else:
                             logger.error(f"Llama API error: {response.status}")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(
                     f"Llama request timeout, attempt {attempt + 1}/{self.max_retries}"
                 )

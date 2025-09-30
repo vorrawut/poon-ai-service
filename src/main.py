@@ -6,6 +6,7 @@ This is a Clean Architecture FastAPI microservice for AI-powered spending analys
 
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import structlog
 import uvicorn
@@ -176,7 +177,7 @@ def create_app() -> FastAPI:
 
     # Health check endpoint
     @app.get("/health", tags=["Health"])
-    async def health_check() -> dict:
+    async def health_check() -> dict[str, Any]:
         """Health check endpoint."""
         return {
             "status": "healthy",
@@ -187,7 +188,7 @@ def create_app() -> FastAPI:
 
     # Root endpoint
     @app.get("/", tags=["Root"])
-    async def root() -> dict:
+    async def root() -> dict[str, Any]:
         """Root endpoint with service information."""
         return {
             "service": settings.app_name,

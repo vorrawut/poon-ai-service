@@ -1,7 +1,7 @@
 """Error handling middleware."""
 
 import traceback
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 import structlog
 from fastapi import Request, Response
@@ -14,10 +14,12 @@ logger = structlog.get_logger(__name__)
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Middleware for centralized error handling."""
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         """Handle request and catch any unhandled exceptions."""
         try:
-            response = await call_next(request)
+            response: Response = await call_next(request)
             return response
 
         except ValueError as e:

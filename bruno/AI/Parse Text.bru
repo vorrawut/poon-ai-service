@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/api/{{apiVersion}}/ai/parse-text
+  url: {{baseUrl}}/api/{{apiVersion}}/spending/process/text
   body: json
   auth: none
 }
@@ -17,8 +17,7 @@ headers {
 body:json {
   {
     "text": "กาแฟที่สตาร์บัคส์ 120 บาท ด้วยบัตรเครดิต",
-    "language": "th",
-    "processing_method": "llama_enhanced"
+    "language": "th"
   }
 }
 
@@ -29,7 +28,7 @@ tests {
 
   test("Response has parsed data", function() {
     const body = res.getBody();
-    expect(body.success).to.be.true;
+    expect(body.status).to.equal("success");
     expect(body.parsed_data).to.be.an("object");
   });
 
@@ -42,8 +41,14 @@ tests {
   });
 
   test("Confidence score is valid", function() {
-    const confidence = res.getBody().parsed_data.confidence;
+    const confidence = res.getBody().confidence;
     expect(confidence).to.be.at.least(0);
     expect(confidence).to.be.at.most(1);
+  });
+
+  test("Creates spending entry", function() {
+    const body = res.getBody();
+    expect(body.entry_id).to.be.a("string");
+    expect(body.message).to.be.a("string");
   });
 }

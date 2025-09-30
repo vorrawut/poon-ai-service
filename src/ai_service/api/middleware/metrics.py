@@ -1,7 +1,7 @@
 """Metrics middleware for Prometheus."""
 
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response
 from prometheus_client import Counter, Histogram
@@ -34,7 +34,9 @@ AI_PROCESSING_DURATION = Histogram(
 class MetricsMiddleware(BaseHTTPMiddleware):
     """Middleware for collecting Prometheus metrics."""
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         """Collect metrics for request/response."""
         start_time = time.time()
 
@@ -42,7 +44,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         endpoint = self._get_endpoint_pattern(request)
 
         # Process request
-        response = await call_next(request)
+        response: Response = await call_next(request)
 
         # Calculate duration
         duration = time.time() - start_time

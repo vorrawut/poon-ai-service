@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/{{apiVersion}}/health
+  url: {{baseUrl}}/api/{{apiVersion}}/health/detailed
   body: none
   auth: none
 }
@@ -15,21 +15,25 @@ tests {
     expect(res.getStatus()).to.equal(200);
   });
 
-  test("Response has detailed services info", function() {
+  test("Response has detailed dependencies info", function() {
     const body = res.getBody();
-    expect(body.services).to.be.an("object");
-    expect(body.services.database).to.be.a("string");
-    expect(body.services.llama).to.be.a("string");
+    expect(body.dependencies).to.be.an("object");
+    expect(body.dependencies.database).to.be.an("object");
+    expect(body.dependencies.llama).to.be.an("object");
+    expect(body.dependencies.ocr).to.be.an("object");
   });
 
   test("Response has feature flags", function() {
     const body = res.getBody();
-    expect(body.feature_flags).to.be.an("object");
+    expect(body.features).to.be.an("object");
+    expect(body.features.ai_enhancement).to.be.a("boolean");
+    expect(body.features.batch_processing).to.be.a("boolean");
   });
 
   test("Response has environment info", function() {
     const body = res.getBody();
     expect(body.environment).to.be.a("string");
-    expect(body.debug).to.be.a("boolean");
+    expect(body.service).to.be.a("string");
+    expect(body.version).to.be.a("string");
   });
 }

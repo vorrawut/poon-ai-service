@@ -141,9 +141,6 @@ class ImageData:
 
     def __post_init__(self) -> None:
         """Validate image data."""
-        if not isinstance(self.data, bytes):
-            msg = f"Image data must be bytes, got {type(self.data)}"
-            raise TypeError(msg)
 
         if len(self.data) == 0:
             msg = "Image data cannot be empty"

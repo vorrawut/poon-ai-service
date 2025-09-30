@@ -58,7 +58,7 @@ class LlamaClient:
         try:
             session = await self._get_session()
 
-            payload = {
+            payload: dict[str, Any] = {
                 "model": self.model,
                 "prompt": prompt,
                 "stream": False,
@@ -83,7 +83,7 @@ class LlamaClient:
                     )
                     return {
                         "success": False,
-                        "error": f"API error: {response.status}",
+                        "error": f"HTTP error: {response.status}",
                         "response": None,
                     }
 
@@ -170,7 +170,7 @@ Return the JSON object:"""
                 "parsed_data": parsed_data,
                 "raw_response": result["response"],
                 "model": result["model"],
-                "processing_time_ms": result.get("total_duration", 0) // 1_000_000,
+                "processing_time_ms": (result.get("total_duration") or 0) // 1_000_000,
             }
 
         except json.JSONDecodeError as e:

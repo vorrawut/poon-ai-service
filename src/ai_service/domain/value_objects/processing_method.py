@@ -18,6 +18,7 @@ class ProcessingMethod(str, Enum):
     BATCH_IMPORT = "batch_import"
 
     # AI enhancement methods
+    AI_ENHANCED = "ai_enhanced"
     LLAMA_DIRECT = "llama_direct"
     LLAMA_ENHANCED = "llama_enhanced"
     OPENAI_ENHANCED = "openai_enhanced"

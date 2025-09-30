@@ -42,6 +42,9 @@ class GetSpendingEntriesQuery(Query):
         if self.limit <= 0:
             raise ValueError("Limit must be positive")
 
+        if self.limit > 1000:
+            raise ValueError("Limit cannot exceed 1000")
+
         if self.offset < 0:
             raise ValueError("Offset cannot be negative")
 
@@ -108,11 +111,15 @@ class GetSpendingEntriesQueryHandler(
             # Get total count
             total_count = await self._repository.count_total()
 
+            # Calculate has_more
+            has_more = (query.offset + len(entries)) < total_count
+
             result_data = {
                 "entries": entries,
                 "total_count": total_count,
                 "limit": query.limit,
                 "offset": query.offset,
+                "has_more": has_more,
             }
 
             return QueryResult.success_result(

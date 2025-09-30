@@ -5,38 +5,43 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/process/text
+  url: {{baseUrl}}/api/{{apiVersion}}/spending/process/text
   body: json
+  auth: none
 }
 
 body:json {
-  "text": "Bought lunch at McDonald's for 250 baht, paid with cash yesterday",
-  "language": "auto",
-  "use_ai_fallback": true,
-  "context": {
-    "source": "voice_input",
-    "user_location": "Bangkok, Thailand"
+  {
+    "text": "Bought lunch at McDonald's for 250 baht, paid with cash yesterday",
+    "language": "en"
   }
-}
-
-assert {
-  res.status: eq 200
-  res.body.amount: isNumber
-  res.body.merchant: isString
 }
 
 tests {
   test("Text processing should succeed", function() {
-    expect(res.status).to.equal(200);
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has correct structure", function() {
+    const body = res.getBody();
+    expect(body.message).to.be.a("string");
+    expect(body.entry_id).to.be.a("string");
+    expect(body.parsed_data).to.be.an("object");
+    expect(body.status).to.equal("success");
   });
 
   test("Should extract spending details", function() {
-    expect(res.body.amount).to.be.a("number");
-    expect(res.body.merchant).to.be.a("string");
-    expect(res.body.category).to.be.a("string");
+    const body = res.getBody();
+    expect(body.parsed_data.amount).to.be.a("number");
+    expect(body.parsed_data.merchant).to.be.a("string");
+    expect(body.parsed_data.category).to.be.a("string");
+    expect(body.parsed_data.currency).to.be.a("string");
   });
 
-  test("Should handle natural language", function() {
-    expect(res.body.processing_method).to.match(/nlp/);
+  test("Should have confidence score", function() {
+    const body = res.getBody();
+    expect(body.confidence).to.be.a("number");
+    expect(body.confidence).to.be.at.least(0);
+    expect(body.confidence).to.be.at.most(1);
   });
 }

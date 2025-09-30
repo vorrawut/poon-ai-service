@@ -5,9 +5,9 @@ Cost-free alternative to OpenAI
 """
 
 import asyncio
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from typing import Any
 
 import httpx
@@ -70,7 +70,7 @@ class LlamaService:
                             f"Llama API error: {response.status_code} - {response.text}"
                         )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(
                     f"Llama request timeout, attempt {attempt + 1}/{self.max_retries}"
                 )

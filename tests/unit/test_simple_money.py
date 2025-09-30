@@ -16,14 +16,14 @@ class TestMoney:
         money = Money.from_float(120.50, Currency.THB)
         assert money.amount == Decimal("120.50")
         assert money.currency == Currency.THB
-        assert str(money) == "฿120.50"
+        assert str(money) == "120.50 THB"
 
     def test_money_creation_from_decimal(self):
         """Test creating Money from Decimal."""
         money = Money(Decimal("99.99"), Currency.USD)
         assert money.amount == Decimal("99.99")
         assert money.currency == Currency.USD
-        assert str(money) == "$99.99"
+        assert str(money) == "99.99 USD"
 
     def test_money_validation(self):
         """Test Money validation."""

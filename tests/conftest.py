@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from datetime import datetime
 
@@ -131,8 +132,31 @@ async def test_app():
     await test_repo.initialize()
 
     app.state.spending_repository = test_repo
-    app.state.llama_client = None  # Mock for tests
-    app.state.ocr_client = None  # Mock for tests
+
+    # Create mock clients for tests
+    from unittest.mock import AsyncMock, MagicMock
+
+    mock_llama_client = MagicMock()
+
+    # Mock process_text to return a proper result
+    mock_result = MagicMock()
+    mock_result.success = True
+    mock_result.spending_entry = MagicMock()
+    mock_result.spending_entry.id.value = "test-id"
+    mock_result.spending_entry.confidence.value = 0.8
+    mock_result.spending_entry.processing_method.value = "manual"
+
+    mock_llama_client.process_text = AsyncMock(return_value=mock_result)
+    mock_llama_client.is_available = MagicMock(return_value=True)
+
+    mock_ocr_client = MagicMock()
+    mock_ocr_client.extract_text = AsyncMock(
+        return_value={"success": True, "text": "Test receipt text", "confidence": 0.9}
+    )
+    mock_ocr_client.is_available = MagicMock(return_value=True)
+
+    app.state.llama_client = mock_llama_client
+    app.state.ocr_client = mock_ocr_client
 
     yield app
 

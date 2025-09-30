@@ -127,6 +127,15 @@ class UpdateSpendingEntryCommand(Command):
             msg = "Entry ID cannot be empty"
             raise ValueError(msg)
 
+        # Validate UUID format
+        try:
+            import uuid
+
+            uuid.UUID(self.entry_id)
+        except ValueError as e:
+            msg = "Invalid entry ID format"
+            raise ValueError(msg) from e
+
         if self.amount is not None and self.amount <= 0:
             msg = "Amount must be positive"
             raise ValueError(msg)
@@ -170,7 +179,7 @@ class UpdateSpendingEntryCommandHandler(
 
             if command.category is not None:
                 new_category = SpendingCategory(command.category)
-                entry.update_category(new_category, command.subcategory)
+                entry = entry.update_category(new_category)
 
             # Save updated entry
             await self._repository.save(entry)
@@ -240,7 +249,7 @@ class ProcessTextCommand(Command):
 
     text: str
     language: str | None = None
-    user_context: dict | None = None
+    user_context: dict[str, Any] | None = None
 
     def validate(self) -> None:
         """Validate command data."""

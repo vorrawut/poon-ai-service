@@ -7,7 +7,7 @@ import hashlib
 import json
 import logging
 import time
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class SimpleCache:
             del self.cache[key]
             self.stats["evictions"] += 1
 
-    def get(self, key_data: Any) -> Optional[Any]:
+    def get(self, key_data: Any) -> Any | None:
         """Get value from cache"""
         key = self._generate_key(key_data)
 
@@ -66,7 +66,7 @@ class SimpleCache:
         logger.debug(f"Cache hit for key: {key[:8]}...")
         return entry["value"]
 
-    def set(self, key_data: Any, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key_data: Any, value: Any, ttl: int | None = None) -> None:
         """Set value in cache"""
         key = self._generate_key(key_data)
         ttl = ttl or self.default_ttl
@@ -136,7 +136,7 @@ class CacheManager:
     def __init__(self):
         self.caches = {"nlp": nlp_cache, "ocr": ocr_cache, "ai": ai_cache}
 
-    def get_nlp_result(self, text: str, language: str = "en") -> Optional[Any]:
+    def get_nlp_result(self, text: str, language: str = "en") -> Any | None:
         """Get cached NLP result"""
         cache_key = f"nlp:{language}:{text}"
         return nlp_cache.get(cache_key)
@@ -148,7 +148,7 @@ class CacheManager:
         cache_key = f"nlp:{language}:{text}"
         nlp_cache.set(cache_key, result, ttl)
 
-    def get_ocr_result(self, image_hash: str) -> Optional[Any]:
+    def get_ocr_result(self, image_hash: str) -> Any | None:
         """Get cached OCR result"""
         cache_key = f"ocr:{image_hash}"
         return ocr_cache.get(cache_key)
@@ -158,7 +158,7 @@ class CacheManager:
         cache_key = f"ocr:{image_hash}"
         ocr_cache.set(cache_key, result, ttl)
 
-    def get_ai_result(self, prompt_hash: str) -> Optional[Any]:
+    def get_ai_result(self, prompt_hash: str) -> Any | None:
         """Get cached AI result"""
         cache_key = f"ai:{prompt_hash}"
         return ai_cache.get(cache_key)
@@ -168,7 +168,7 @@ class CacheManager:
         cache_key = f"ai:{prompt_hash}"
         ai_cache.set(cache_key, result, ttl)
 
-    def get_merchant_category(self, merchant: str) -> Optional[str]:
+    def get_merchant_category(self, merchant: str) -> str | None:
         """Get cached merchant category mapping"""
         cache_key = f"merchant:{merchant.lower()}"
         return nlp_cache.get(cache_key)

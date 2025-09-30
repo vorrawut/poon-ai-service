@@ -3,9 +3,8 @@ Settings configuration for AI microservice
 Environment-based configuration with sensible defaults
 """
 
-from functools import lru_cache
 import os
-from typing import Optional
+from functools import lru_cache
 
 
 class Settings:
@@ -29,7 +28,7 @@ class Settings:
     ).split(",")
 
     # OpenAI Configuration (fallback)
-    openai_api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
+    openai_api_key: str | None = os.getenv("OPENAI_API_KEY")
     openai_model: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     openai_max_tokens: int = int(os.getenv("OPENAI_MAX_TOKENS", "1000"))
     openai_temperature: float = float(os.getenv("OPENAI_TEMPERATURE", "0.1"))
@@ -44,7 +43,7 @@ class Settings:
     use_llama: bool = os.getenv("USE_LLAMA", "true").lower() == "true"
 
     # OCR Configuration
-    tesseract_path: Optional[str] = os.getenv("TESSERACT_PATH")
+    tesseract_path: str | None = os.getenv("TESSERACT_PATH")
     tesseract_config: str = os.getenv("TESSERACT_CONFIG", "--oem 3 --psm 6")
     ocr_confidence_threshold: float = float(
         os.getenv("OCR_CONFIDENCE_THRESHOLD", "0.7")
@@ -63,7 +62,7 @@ class Settings:
     ).split(",")
 
     # Cache Configuration
-    redis_url: Optional[str] = os.getenv("REDIS_URL")
+    redis_url: str | None = os.getenv("REDIS_URL")
     cache_ttl: int = int(os.getenv("CACHE_TTL", "3600"))  # 1 hour
     cache_enabled: bool = os.getenv("CACHE_ENABLED", "true").lower() == "true"
 
@@ -75,8 +74,8 @@ class Settings:
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Security Configuration
-    api_key: Optional[str] = os.getenv("API_KEY")
-    jwt_secret: Optional[str] = os.getenv("JWT_SECRET")
+    api_key: str | None = os.getenv("API_KEY")
+    jwt_secret: str | None = os.getenv("JWT_SECRET")
 
     # Thai Language Support
     thai_nlp_enabled: bool = os.getenv("THAI_NLP_ENABLED", "true").lower() == "true"

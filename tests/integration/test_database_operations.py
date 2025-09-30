@@ -85,11 +85,13 @@ class TestSqliteSpendingRepository:
         await repository.save(sample_entry)
 
         # Update the entry
-        sample_entry.update_merchant("Updated Cafe")
-        sample_entry.update_amount(Money.from_float(200.0, Currency.THB))
+        updated_entry = sample_entry.update_merchant("Updated Cafe")
+        updated_entry = updated_entry.update_amount(
+            Money.from_float(200.0, Currency.THB)
+        )
 
         # Save again
-        await repository.save(sample_entry)
+        await repository.save(updated_entry)
 
         # Retrieve and verify update
         retrieved = await repository.find_by_id(sample_entry.id)

@@ -1,5 +1,7 @@
 """Health check endpoints."""
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, Depends, Request
 
@@ -10,7 +12,7 @@ router = APIRouter()
 
 
 @router.get("/")
-async def health_check(settings: Settings = Depends(get_settings)) -> dict:
+async def health_check(settings: Settings = Depends(get_settings)) -> dict[str, Any]:
     """Basic health check endpoint."""
     return {
         "status": "healthy",
@@ -23,9 +25,9 @@ async def health_check(settings: Settings = Depends(get_settings)) -> dict:
 @router.get("/detailed")
 async def detailed_health_check(
     request: Request, settings: Settings = Depends(get_settings)
-) -> dict:
+) -> dict[str, Any]:
     """Detailed health check with service dependencies."""
-    health_status = {
+    health_status: dict[str, Any] = {
         "status": "healthy",
         "service": settings.app_name,
         "version": settings.app_version,
@@ -100,7 +102,7 @@ async def detailed_health_check(
 
 
 @router.get("/ready")
-async def readiness_check(request: Request) -> dict:
+async def readiness_check(request: Request) -> dict[str, Any]:
     """Readiness check for Kubernetes."""
     # Check if essential services are ready
     ready = True
@@ -116,6 +118,6 @@ async def readiness_check(request: Request) -> dict:
 
 
 @router.get("/live")
-async def liveness_check() -> dict:
+async def liveness_check() -> dict[str, Any]:
     """Liveness check for Kubernetes."""
     return {"status": "alive"}

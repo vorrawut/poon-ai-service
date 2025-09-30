@@ -24,15 +24,8 @@ class SpendingEntryId:
 
     def __post_init__(self) -> None:
         """Validate spending entry ID."""
-        if not isinstance(self.value, str):
-            msg = f"SpendingEntryId must be a string, got {type(self.value)}"
-            raise TypeError(msg)
 
-        if not self.value.strip():
-            msg = "SpendingEntryId cannot be empty"
-            raise ValueError(msg)
-
-        # Validate UUID format
+        # Validate UUID format (this will catch empty strings too)
         try:
             uuid.UUID(self.value)
         except ValueError as e:
@@ -42,6 +35,20 @@ class SpendingEntryId:
     def __str__(self) -> str:
         """String representation."""
         return self.value
+
+    def __repr__(self) -> str:
+        """Developer representation."""
+        return f"SpendingEntryId({self.value})"
+
+    @classmethod
+    def generate(cls) -> SpendingEntryId:
+        """Generate a new spending entry ID."""
+        return cls()
+
+    @classmethod
+    def from_string(cls, value: str) -> SpendingEntryId:
+        """Create spending entry ID from string."""
+        return cls(value=value)
 
 
 @dataclass
@@ -56,7 +63,7 @@ class SpendingEntry:
     # Core spending data (required fields first)
     amount: Money
     merchant: str
-    description: str
+    description: str | None
     transaction_date: datetime
     category: SpendingCategory
     payment_method: PaymentMethod
@@ -88,6 +95,50 @@ class SpendingEntry:
 
         # Domain events are temporarily disabled for migration
 
+    def validate(self) -> None:
+        """Public validation method."""
+        self._validate_business_rules()
+
+    def update_amount(self, new_amount: Money) -> SpendingEntry:
+        """Update the amount and return a new instance."""
+        from copy import deepcopy
+
+        try:
+            new_entry = deepcopy(self)
+            new_entry.amount = new_amount
+            new_entry.updated_at = datetime.utcnow()
+            return new_entry
+        except Exception as e:
+            # This should not happen in production, but helps debug
+            raise RuntimeError(f"Failed to update amount: {e}") from e
+
+    def update_description(self, new_description: str | None) -> SpendingEntry:
+        """Update the description and return a new instance."""
+        from copy import deepcopy
+
+        new_entry = deepcopy(self)
+        new_entry.description = new_description
+        new_entry.updated_at = datetime.utcnow()
+        return new_entry
+
+    def update_category(self, new_category: SpendingCategory) -> SpendingEntry:
+        """Update the category and return a new instance."""
+        from copy import deepcopy
+
+        new_entry = deepcopy(self)
+        new_entry.category = new_category
+        new_entry.updated_at = datetime.utcnow()
+        return new_entry
+
+    def update_processing_method(self, new_method: ProcessingMethod) -> SpendingEntry:
+        """Update the processing method and return a new instance."""
+        from copy import deepcopy
+
+        new_entry = deepcopy(self)
+        new_entry.processing_method = new_method
+        new_entry.updated_at = datetime.utcnow()
+        return new_entry
+
     def _validate_business_rules(self) -> None:
         """Validate core business rules."""
         # Merchant validation
@@ -99,14 +150,15 @@ class SpendingEntry:
             msg = f"Merchant name too long: {len(self.merchant)} characters (max 200)"
             raise ValueError(msg)
 
-        # Description validation
-        if not self.description.strip():
-            msg = "Description cannot be empty"
-            raise ValueError(msg)
+        # Description validation (optional field)
+        if self.description is not None:
+            if not self.description.strip():
+                msg = "Description cannot be empty"
+                raise ValueError(msg)
 
-        if len(self.description) > 500:
-            msg = f"Description too long: {len(self.description)} characters (max 500)"
-            raise ValueError(msg)
+            if len(self.description) > 1000:
+                msg = f"Description too long: {len(self.description)} characters (max 1000)"
+                raise ValueError(msg)
 
         # Date validation
         if self.transaction_date > datetime.utcnow():
@@ -133,17 +185,8 @@ class SpendingEntry:
             msg = f"Raw text too long: {len(self.raw_text)} characters (max 2000)"
             raise ValueError(msg)
 
-    def update_amount(self, new_amount: Money) -> None:
-        """Update the spending amount."""
-        if new_amount.currency != self.amount.currency:
-            msg = f"Cannot change currency from {self.amount.currency} to {new_amount.currency}"
-            raise ValueError(msg)
-
-        object.__setattr__(self, "amount", new_amount)
-        object.__setattr__(self, "updated_at", datetime.utcnow())
-
-    def update_merchant(self, new_merchant: str) -> None:
-        """Update the merchant name."""
+    def update_merchant(self, new_merchant: str) -> SpendingEntry:
+        """Update the merchant name and return a new instance."""
         if not new_merchant.strip():
             msg = "Merchant cannot be empty"
             raise ValueError(msg)
@@ -152,16 +195,17 @@ class SpendingEntry:
             msg = f"Merchant name too long: {len(new_merchant)} characters (max 200)"
             raise ValueError(msg)
 
-        object.__setattr__(self, "merchant", new_merchant.strip())
-        object.__setattr__(self, "updated_at", datetime.utcnow())
+        from copy import deepcopy
 
-    def update_category(
-        self, new_category: SpendingCategory, new_subcategory: str | None = None
-    ) -> None:
-        """Update the spending category and subcategory."""
-        object.__setattr__(self, "category", new_category)
-        object.__setattr__(self, "subcategory", new_subcategory)
-        object.__setattr__(self, "updated_at", datetime.utcnow())
+        try:
+            new_entry = deepcopy(self)
+            new_entry.merchant = new_merchant.strip()
+            new_entry.updated_at = datetime.utcnow()
+            return new_entry
+        except Exception as e:
+            # This should not happen in production, but helps debug
+            msg = f"Failed to update merchant: {e}"
+            raise RuntimeError(msg) from e
 
     def add_tag(self, tag: str) -> None:
         """Add a tag to the spending entry."""
@@ -269,6 +313,66 @@ class SpendingEntry:
     def clear_events(self) -> None:
         """Clear domain events."""
         self._events.clear()
+
+    @classmethod
+    def create(
+        cls,
+        merchant: str,
+        amount: Money,
+        category: SpendingCategory,
+        description: str | None = None,
+        payment_method: PaymentMethod | None = None,
+        confidence: ConfidenceScore | None = None,
+        processing_method: ProcessingMethod | None = None,
+        transaction_date: datetime | None = None,
+        **kwargs: Any,
+    ) -> SpendingEntry:
+        """Create a new spending entry with defaults."""
+        from ..value_objects.confidence import ConfidenceScore
+        from ..value_objects.spending_category import PaymentMethod
+
+        return cls(
+            merchant=merchant,
+            amount=amount,
+            category=category,
+            description=description,
+            payment_method=payment_method or PaymentMethod.OTHER,
+            confidence=confidence or ConfidenceScore.medium(),
+            processing_method=processing_method or ProcessingMethod.MANUAL_ENTRY,
+            transaction_date=transaction_date or datetime.utcnow(),
+            **kwargs,
+        )
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SpendingEntry:
+        """Create spending entry from dictionary."""
+        from ..value_objects.confidence import ConfidenceScore
+        from ..value_objects.money import Currency, Money
+        from ..value_objects.spending_category import PaymentMethod, SpendingCategory
+
+        return cls(
+            id=SpendingEntryId.from_string(data["id"])
+            if "id" in data
+            else SpendingEntryId.generate(),
+            merchant=data["merchant"],
+            amount=Money.from_float(data["amount"], Currency(data["currency"])),
+            category=SpendingCategory(data["category"]),
+            description=data["description"],
+            payment_method=PaymentMethod(data["payment_method"]),
+            confidence=ConfidenceScore(data["confidence"]),
+            processing_method=ProcessingMethod(data["processing_method"]),
+            transaction_date=datetime.fromisoformat(data["transaction_date"]),
+            subcategory=data.get("subcategory"),
+            location=data.get("location"),
+            tags=data.get("tags", []),
+            raw_text=data.get("raw_text"),
+            created_at=datetime.fromisoformat(data["created_at"])
+            if "created_at" in data
+            else datetime.utcnow(),
+            updated_at=datetime.fromisoformat(data["updated_at"])
+            if "updated_at" in data
+            else datetime.utcnow(),
+        )
 
     def __str__(self) -> str:
         """String representation."""

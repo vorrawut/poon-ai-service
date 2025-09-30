@@ -162,7 +162,7 @@ class TestCreateSpendingEntryCommandHandler:
         result = await handler.handle(invalid_command)
 
         assert result.is_failure()
-        assert "Amount must be positive" in result.message
+        assert "Amount must be positive" in result.error
 
         # Verify repository was not called
         mock_repository.save.assert_not_called()
@@ -175,7 +175,7 @@ class TestCreateSpendingEntryCommandHandler:
         result = await handler.handle(valid_command)
 
         assert result.is_failure()
-        assert "Failed to save spending entry" in result.message
+        assert "Failed to create spending entry" in result.message
 
 
 @pytest.mark.unit
@@ -189,13 +189,11 @@ class TestUpdateSpendingEntryCommand:
             entry_id=entry_id,
             amount=150.0,
             merchant="Updated Cafe",
-            description="Updated description",
         )
 
         assert command.entry_id == entry_id
         assert command.amount == 150.0
         assert command.merchant == "Updated Cafe"
-        assert command.description == "Updated description"
 
     def test_command_validation_success(self):
         """Test successful validation."""

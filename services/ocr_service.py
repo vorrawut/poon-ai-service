@@ -11,8 +11,8 @@ from typing import Any
 
 import cv2
 import numpy as np
-from PIL import Image
 import pytesseract
+from PIL import Image
 
 from models.spending_models import OCRResult
 

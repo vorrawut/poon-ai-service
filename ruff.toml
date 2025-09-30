@@ -3,6 +3,8 @@
 
 target-version = "py311"
 line-length = 88
+
+[lint]
 select = [
     "E", "W",    # pycodestyle
     "F",         # pyflakes
@@ -28,14 +30,14 @@ ignore = [
 ]
 
 # Allow imports after sys.path modification in test files
-[per-file-ignores]
+[lint.per-file-ignores]
 "tests/**" = ["E402", "ARG002"]  # Allow unused arguments in test mocks
 "scripts/**" = ["E402"]
 
-[flake8-pytest-style]
+[lint.flake8-pytest-style]
 fixture-parentheses = false
 mark-parentheses = false
 
-[isort]
+[lint.isort]
 known-first-party = ["ai_service"]
 force-single-line = false

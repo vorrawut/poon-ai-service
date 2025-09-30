@@ -36,9 +36,6 @@ class TextContent:
 
     def __post_init__(self) -> None:
         """Validate and process text content."""
-        if not isinstance(self.content, str):
-            msg = f"Content must be a string, got {type(self.content)}"
-            raise TypeError(msg)
 
         if not self.content.strip():
             msg = "Content cannot be empty or whitespace only"

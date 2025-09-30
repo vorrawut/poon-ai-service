@@ -66,6 +66,13 @@ class QueryResult:
     errors: list[str] | None = None
     total_count: int | None = None
 
+    @property
+    def error(self) -> str | None:
+        """Get the first error message if any."""
+        if self.errors and len(self.errors) > 0:
+            return self.errors[0]
+        return self.message if not self.success else None
+
     @classmethod
     def success_result(
         cls,

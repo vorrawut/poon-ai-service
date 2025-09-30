@@ -2,9 +2,9 @@
 Text processing utilities for NLP
 """
 
-from datetime import datetime
 import logging
 import re
+from datetime import datetime
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -294,7 +294,6 @@ def extract_keywords(text: str, min_length: int = 3) -> list[str]:
             "แต่",
             "ใน",
             "บน",
-            "ที่",
             "เพื่อ",
             "ของ",
             "กับ",

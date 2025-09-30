@@ -6,7 +6,7 @@ import shutil
 from functools import lru_cache
 from typing import Any
 
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     )
 
     # Server settings
-    host: str = Field(default="0.0.0.0", description="Server host")
+    host: str = Field(default="0.0.0.0", description="Server host")  # nosec B104
     port: int = Field(default=8001, description="Server port")
     reload: bool = Field(default=False, description="Auto-reload on code changes")
 
@@ -103,7 +103,7 @@ class Settings(BaseSettings):
         default=True, description="Enable spending pattern analysis"
     )
 
-    @validator("environment")
+    @field_validator("environment")
     @classmethod
     def validate_environment(cls, v: str) -> str:
         """Validate environment setting."""
@@ -113,7 +113,7 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return v.lower()
 
-    @validator("log_level")
+    @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
         """Validate log level setting."""
@@ -123,7 +123,7 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return v.upper()
 
-    @validator("confidence_threshold", "ocr_confidence_threshold")
+    @field_validator("confidence_threshold", "ocr_confidence_threshold")
     @classmethod
     def validate_confidence_threshold(cls, v: float) -> float:
         """Validate confidence threshold values."""
@@ -132,7 +132,7 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return v
 
-    @validator("port", "metrics_port")
+    @field_validator("port", "metrics_port")
     @classmethod
     def validate_port(cls, v: int) -> int:
         """Validate port numbers."""
@@ -141,7 +141,7 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return v
 
-    @validator("max_file_size_mb")
+    @field_validator("max_file_size_mb")
     @classmethod
     def validate_max_file_size(cls, v: int) -> int:
         """Validate maximum file size."""

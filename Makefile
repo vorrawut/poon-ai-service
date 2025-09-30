@@ -94,13 +94,21 @@ test-ocr: ## 🧪 Test OCR functionality with sample images
 # Code Quality
 lint: ## 🔍 Run linting with Ruff
 	@echo "$(BLUE)Running Ruff linter...$(RESET)"
-	@ruff check $(SRC_DIR) || echo "$(YELLOW)⚠️ Ruff not available. Install with: pip install ruff$(RESET)"
+	@ruff check $(SRC_DIR) $(TEST_DIR) || echo "$(YELLOW)⚠️ Ruff not available. Install with: pip install ruff$(RESET)"
 	@echo "$(GREEN)✅ Linting completed$(RESET)"
 
-format: ## 🎨 Format code with Ruff
+lint-fix: ## 🔧 Fix linting issues automatically
+	@echo "$(BLUE)Fixing linting issues with Ruff...$(RESET)"
+	@ruff check --fix $(SRC_DIR) $(TEST_DIR) 2>/dev/null || echo "$(YELLOW)⚠️ Ruff not available. Install with: pip install ruff$(RESET)"
+	@ruff check --unsafe-fixes --fix $(SRC_DIR) $(TEST_DIR) 2>/dev/null || true
+	@echo "$(GREEN)✅ Linting fixes applied$(RESET)"
+
+format: ## 🎨 Format code with Ruff and Prettier
 	@echo "$(BLUE)Formatting code with Ruff...$(RESET)"
-	@ruff format $(SRC_DIR) || echo "$(YELLOW)⚠️ Ruff not available. Install with: pip install ruff$(RESET)"
-	@ruff check --fix $(SRC_DIR) 2>/dev/null || true
+	@ruff format $(SRC_DIR) $(TEST_DIR) || echo "$(YELLOW)⚠️ Ruff not available. Install with: pip install ruff$(RESET)"
+	@ruff check --fix $(SRC_DIR) $(TEST_DIR) 2>/dev/null || true
+	@echo "$(BLUE)Formatting YAML/JSON files with Prettier...$(RESET)"
+	@prettier --write "**/*.{yaml,yml,json,md}" --ignore-path .gitignore 2>/dev/null || echo "$(YELLOW)⚠️ Prettier not available. Install with: npm install -g prettier$(RESET)"
 	@echo "$(GREEN)✅ Code formatting completed$(RESET)"
 
 type-check: ## 🔎 Run type checking with MyPy
@@ -116,8 +124,21 @@ security: ## 🔒 Run security checks with Bandit
 
 pre-commit: ## ⚡ Run pre-commit hooks on all files
 	@echo "$(BLUE)Running pre-commit hooks...$(RESET)"
-	@pre-commit run --all-files || echo "$(YELLOW)⚠️ Pre-commit not available. Install with: pip install pre-commit$(RESET)"
+	@if command -v pre-commit >/dev/null 2>&1; then \
+		pre-commit run --all-files; \
+		if [ $$? -ne 0 ]; then \
+			echo "$(YELLOW)⚠️ Pre-commit found issues and fixed them. Re-running...$(RESET)"; \
+			pre-commit run --all-files; \
+		fi; \
+	else \
+		echo "$(YELLOW)⚠️ Pre-commit not available. Install with: pip install pre-commit$(RESET)"; \
+	fi
 	@echo "$(GREEN)✅ Pre-commit checks completed$(RESET)"
+
+pre-commit-install: ## 🔧 Install pre-commit hooks
+	@echo "$(BLUE)Installing pre-commit hooks...$(RESET)"
+	@pre-commit install || echo "$(YELLOW)⚠️ Pre-commit not available. Install with: pip install pre-commit$(RESET)"
+	@echo "$(GREEN)✅ Pre-commit hooks installed$(RESET)"
 
 # Testing
 test: ## 🧪 Run all tests
@@ -275,11 +296,11 @@ upgrade-deps: ## ⬆️ Upgrade dependencies
 	@echo "$(GREEN)✅ Dependencies upgrade check completed$(RESET)"
 
 # Complete Quality Check
-quality: lint format type-check security test-coverage ## 🏆 Run complete quality check pipeline
+quality: lint-fix format type-check security pre-commit test-coverage ## 🏆 Run complete quality check pipeline (auto-fixes linting issues, includes prettier)
 	@echo "$(GREEN)🎉 All quality checks passed!$(RESET)"
 
 # Development Setup
-setup-dev: install-dev env-local ollama-setup bruno-update migrate ## 🚀 Complete development setup
+setup-dev: install-dev pre-commit-install env-local ollama-setup bruno-update migrate ## 🚀 Complete development setup
 	@echo "$(GREEN)🎉 Development environment setup completed!$(RESET)"
 	@echo "$(CYAN)Next steps:$(RESET)"
 	@echo "  1. $(YELLOW)make run-dev$(RESET) - Start development server"

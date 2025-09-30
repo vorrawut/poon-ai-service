@@ -1,0 +1,187 @@
+# Complete Docker Compose for Poon AI Service
+# Includes: AI Service, Ollama, Tesseract OCR, Redis, and monitoring
+
+services:
+  # Main AI Service
+  ai-service:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.tesseract
+      target: development
+    ports:
+      - "8001:8001"
+    environment:
+      # Application Settings
+      - DEBUG=true
+      - ENVIRONMENT=development
+      - APP_NAME=Poon AI Service
+      - APP_VERSION=1.0.0
+
+      # Database
+      - DATABASE_URL=sqlite:///./data/spending.db
+
+      # AI Service (Ollama)
+      - USE_LLAMA=true
+      - OLLAMA_URL=http://ollama:11434
+      - LLAMA_MODEL=llama3.2:3b
+      - LLAMA_TIMEOUT=30
+
+      # OCR Service (Tesseract)
+      - TESSERACT_PATH=/usr/bin/tesseract
+      - TESSERACT_LANGUAGES=eng+tha+chi_sim+jpn+kor
+
+      # Caching (Redis)
+      - REDIS_URL=redis://redis:6379/0
+      - ENABLE_CACHING=true
+
+      # Monitoring
+      - ENABLE_METRICS=true
+      - LOG_LEVEL=info
+
+      # CORS
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000
+
+    volumes:
+      - .:/app
+      - ai-data:/app/data
+      - tesseract-cache:/app/.tesseract-cache
+    depends_on:
+      ollama:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Ollama AI Service
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+    networks:
+      - ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        reservations:
+          memory: 2G
+        limits:
+          memory: 4G
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - ai-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus Monitoring (Optional)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - ai-network
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    profiles:
+      - monitoring
+
+  # Grafana Dashboard (Optional)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - ai-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  # Model Initialization Service
+  ollama-init:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - ai-network
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    command: >
+      sh -c "
+        echo 'Waiting for Ollama to be ready...' &&
+        sleep 10 &&
+        echo 'Pulling Llama 3.2:3b model...' &&
+        ollama pull llama3.2:3b &&
+        echo 'Model ready!' &&
+        exit 0
+      "
+    restart: "no"
+
+volumes:
+  ollama-data:
+    driver: local
+  redis-data:
+    driver: local
+  ai-data:
+    driver: local
+  tesseract-cache:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

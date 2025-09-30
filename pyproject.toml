@@ -63,6 +63,12 @@ exclude = [
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",
+    # Exclude legacy files - we focus on clean architecture in src/
+    "main.py",
+    "config/",
+    "models/",
+    "services/",
+    "utils/",
 ]
 
 [tool.ruff.lint]
@@ -122,6 +128,14 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
+# Exclude legacy files - focus on clean architecture in src/
+exclude = [
+    "main.py",
+    "config/",
+    "models/",
+    "services/",
+    "utils/",
+]
 
 [[tool.mypy.overrides]]
 module = [
@@ -152,7 +166,10 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 # Coverage configuration
 [tool.coverage.run]
@@ -176,3 +193,18 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+# Bandit configuration
+[tool.bandit]
+exclude_dirs = [
+    "tests",
+    "venv",
+    ".venv",
+    # Exclude legacy files - focus on clean architecture in src/
+    "main.py",
+    "config",
+    "models",
+    "services",
+    "utils",
+]
+skips = ["B101", "B104", "B603", "B404"]

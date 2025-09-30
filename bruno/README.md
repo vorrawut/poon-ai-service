@@ -27,33 +27,54 @@ bruno open backend/ai-service/bruno
 
 ## 📁 Collection Structure
 
-### Health Checks
-- **Health Check** - Basic service health status
-- **AI Status** - Detailed AI service information (Llama4/OpenAI)
+### ✅ **Working Endpoints**
 
-### OCR Processing
+#### Health Checks (`/Health/`)
+- **Health Check** - Basic service health status (`GET /health`)
+- **Detailed Health** - Detailed service status with dependencies (`GET /api/v1/health/detailed`)
+- **AI Status** - AI service status via detailed health check
+
+#### Spending Management (`/Spending/`)
+- **Get All Entries** - Retrieve spending entries with pagination (`GET /api/v1/spending/`)
+- **Create Entry** - Create new spending entry (`POST /api/v1/spending/`)
+
+#### Text Processing (`/Processing/`, `/NLP/`, `/AI/`)
+- **Text Processing** - Process natural language text into spending entries (`POST /api/v1/spending/process/text`)
+- **Parse Text** - English text parsing (redirected to text processing)
+- **Parse Thai Text** - Thai language text parsing (redirected to text processing)
+- **AI Parse Text** - AI-enhanced text parsing (redirected to text processing)
+
+### ❌ **Planned/Disabled Endpoints**
+
+The following endpoints are planned for future implementation but not currently available:
+
+#### OCR Processing (`/OCR/`)
 - **Process Image** - OCR text extraction from images
-- Supports: JPEG, PNG, WebP, HEIC formats
-- Multi-language: English + Thai
+  - *Status*: Not implemented
+  - *Alternative*: Use text processing after manual OCR
 
-### NLP Processing
-- **Parse Text** - Natural language spending text parsing
-- **Parse Thai Text** - Thai language specific parsing
-- Local processing with AI fallback
+#### Advanced Processing (`/Processing/`)
+- **Batch Processing** - Process multiple texts at once
+  - *Status*: Not implemented
+  - *Alternative*: Process texts individually
 
-### Complete Processing Workflows
-- **Complete Receipt Processing** - OCR + NLP + AI pipeline
-- **Text Processing** - Voice/chat input processing
-- **Batch Processing** - Multiple entries processing
+- **Complete Receipt Processing** - End-to-end receipt processing
+  - *Status*: Not implemented
+  - *Alternative*: Use text processing for receipt text
 
-### AI Analysis
-- **Spending Analysis** - Pattern analysis and insights
-- Comprehensive spending behavior analysis
-- Actionable recommendations
+#### AI Analysis (`/AI Analysis/`)
+- **Spending Analysis** - Comprehensive spending analysis
+  - *Status*: Not implemented
+  - *Alternative*: Use individual spending entries for analysis
 
-### Utilities
+#### Utilities (`/Utilities/`)
 - **Category Suggestions** - Smart category recommendations
-- **Merchant Normalization** - Clean merchant name formatting
+  - *Status*: Not implemented
+  - *Alternative*: Categories are auto-assigned by AI
+
+- **Merchant Normalization** - Merchant name normalization
+  - *Status*: Not implemented
+  - *Alternative*: Merchant names are auto-normalized by AI
 
 ## 🧪 Test Scenarios
 

@@ -4,7 +4,7 @@ Pydantic models for spending entry processing
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -50,7 +50,7 @@ class OCRResult(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0, description="OCR confidence score")
     language: str = Field(default="en", description="Detected language")
     processing_time: float = Field(..., description="Processing time in seconds")
-    bounding_boxes: Optional[list[dict[str, Any]]] = Field(
+    bounding_boxes: list[dict[str, Any]] | None = Field(
         default=None, description="Text bounding boxes"
     )
     metadata: dict[str, Any] = Field(
@@ -61,19 +61,19 @@ class OCRResult(BaseModel):
 class NLPResult(BaseModel):
     """Result from NLP processing"""
 
-    merchant: Optional[str] = Field(default=None, description="Extracted merchant name")
-    amount: Optional[float] = Field(
+    merchant: str | None = Field(default=None, description="Extracted merchant name")
+    amount: float | None = Field(
         default=None, ge=0.0, description="Extracted amount"
     )
-    category: Optional[str] = Field(default=None, description="Predicted category")
-    subcategory: Optional[str] = Field(
+    category: str | None = Field(default=None, description="Predicted category")
+    subcategory: str | None = Field(
         default=None, description="Predicted subcategory"
     )
-    date: Optional[datetime] = Field(default=None, description="Extracted date")
-    payment_method: Optional[str] = Field(
+    date: datetime | None = Field(default=None, description="Extracted date")
+    payment_method: str | None = Field(
         default=None, description="Extracted payment method"
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         default=None, description="Generated description"
     )
     confidence: float = Field(
@@ -82,7 +82,7 @@ class NLPResult(BaseModel):
     extraction_details: dict[str, Any] = Field(
         default_factory=dict, description="Detailed extraction info"
     )
-    reasoning: Optional[str] = Field(
+    reasoning: str | None = Field(
         default=None, description="AI reasoning for decisions"
     )
 
@@ -90,23 +90,23 @@ class NLPResult(BaseModel):
 class SpendingEntry(BaseModel):
     """Final spending entry result"""
 
-    id: Optional[str] = Field(default=None, description="Entry ID")
+    id: str | None = Field(default=None, description="Entry ID")
     amount: float = Field(..., ge=0.0, description="Spending amount")
     merchant: str = Field(..., description="Merchant name")
     category: str = Field(..., description="Spending category")
-    subcategory: Optional[str] = Field(default=None, description="Spending subcategory")
+    subcategory: str | None = Field(default=None, description="Spending subcategory")
     description: str = Field(..., description="Entry description")
     date: datetime = Field(..., description="Transaction date")
-    payment_method: Optional[str] = Field(
+    payment_method: str | None = Field(
         default=None, description="Payment method used"
     )
-    location: Optional[str] = Field(default=None, description="Transaction location")
+    location: str | None = Field(default=None, description="Transaction location")
     tags: list[str] = Field(default_factory=list, description="Entry tags")
     confidence: float = Field(
         ..., ge=0.0, le=1.0, description="Overall confidence score"
     )
     processing_method: str = Field(..., description="How this entry was processed")
-    raw_text: Optional[str] = Field(default=None, description="Original raw text")
+    raw_text: str | None = Field(default=None, description="Original raw text")
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata"
     )
@@ -137,7 +137,7 @@ class BatchProcessingRequest(BaseModel):
 
     data: list[dict[str, Any]] = Field(..., description="Raw data entries")
     format: str = Field(..., description="Data format (csv, excel, json)")
-    mapping: Optional[dict[str, str]] = Field(
+    mapping: dict[str, str] | None = Field(
         default=None, description="Column mapping"
     )
     use_ai_enhancement: bool = Field(
@@ -184,8 +184,8 @@ class TextParsingRequest(BaseModel):
     """Request for text parsing"""
 
     text: str = Field(..., description="Text to parse")
-    language: Optional[str] = Field(default="en", description="Language code")
-    context: Optional[dict[str, Any]] = Field(
+    language: str | None = Field(default="en", description="Language code")
+    context: dict[str, Any] | None = Field(
         default=None, description="Additional context"
     )
 
@@ -194,14 +194,14 @@ class TextParsingResponse(BaseModel):
     """Response from text parsing"""
 
     success: bool = Field(..., description="Whether parsing was successful")
-    spending_entry: Optional[SpendingEntry] = Field(
+    spending_entry: SpendingEntry | None = Field(
         default=None, description="Parsed spending entry"
     )
     confidence: float = Field(..., ge=0.0, le=1.0, description="Parsing confidence")
-    raw_analysis: Optional[dict[str, Any]] = Field(
+    raw_analysis: dict[str, Any] | None = Field(
         default=None, description="Raw analysis data"
     )
-    errors: Optional[list[str]] = Field(
+    errors: list[str] | None = Field(
         default=None, description="Error messages if any"
     )
 

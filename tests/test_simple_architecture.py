@@ -48,7 +48,7 @@ async def test_simple_architecture():
         # Test Money value object
         money = Money.from_float(120.50, Currency.THB)
         assert money.to_float() == 120.50
-        assert str(money) == "฿120.50"
+        assert str(money) == "120.50 THB"
         logger.info(f"✅ Money value object: {money}")
 
         # Test Confidence value object

@@ -1,30 +1,35 @@
 meta {
-  name: AI Status
+  name: AI Status (via Detailed Health)
   type: http
   seq: 2
 }
 
 get {
-  url: {{baseUrl}}/ai/status
-}
-
-assert {
-  res.status: eq 200
-  res.body.ai_available: eq true
+  url: {{baseUrl}}/api/{{apiVersion}}/health/detailed
+  body: none
+  auth: none
 }
 
 tests {
-  test("Response should be successful", function() {
-    expect(res.status).to.equal(200);
+  test("Status code is 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("Response has dependencies info", function() {
+    const body = res.getBody();
+    expect(body.dependencies).to.be.an("object");
+    expect(body.dependencies.llama).to.be.an("object");
   });
 
   test("Should indicate AI availability", function() {
-    expect(res.body).to.have.property("ai_available");
-    expect(res.body).to.have.property("ai_type");
+    const body = res.getBody();
+    expect(body.dependencies.llama.status).to.be.a("string");
+    expect(body.dependencies.llama.model).to.be.a("string");
   });
 
-  test("AI type should be llama4 or openai", function() {
-    const validTypes = ["llama4", "openai", "none"];
-    expect(validTypes).to.include(res.body.ai_type);
+  test("Should have feature flags", function() {
+    const body = res.getBody();
+    expect(body.features).to.be.an("object");
+    expect(body.features.ai_enhancement).to.be.a("boolean");
   });
 }

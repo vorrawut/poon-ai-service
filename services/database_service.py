@@ -3,11 +3,11 @@ Database Service for storing processed spending entries
 Handles database operations for the AI-processed spending data
 """
 
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import aiosqlite
 
@@ -145,9 +145,9 @@ class DatabaseService:
         self,
         limit: int = 100,
         offset: int = 0,
-        category: Optional[str] = None,
-        date_from: Optional[str] = None,
-        date_to: Optional[str] = None,
+        category: str | None = None,
+        date_from: str | None = None,
+        date_to: str | None = None,
     ) -> list[dict[str, Any]]:
         """Retrieve spending entries with filtering"""
         try:
@@ -196,7 +196,7 @@ class DatabaseService:
             logger.error(f"❌ Failed to retrieve spending entries: {e}")
             return []
 
-    async def get_spending_entry(self, entry_id: str) -> Optional[dict[str, Any]]:
+    async def get_spending_entry(self, entry_id: str) -> dict[str, Any] | None:
         """Get a specific spending entry by ID"""
         try:
             if not self.initialized:
@@ -298,9 +298,9 @@ class DatabaseService:
         entry_id: str,
         step: str,
         method: str,
-        confidence: Optional[float] = None,
-        processing_time: Optional[float] = None,
-        raw_data: Optional[dict[str, Any]] = None,
+        confidence: float | None = None,
+        processing_time: float | None = None,
+        raw_data: dict[str, Any] | None = None,
     ) -> bool:
         """Log a processing step for debugging and analysis"""
         try:

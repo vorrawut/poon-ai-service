@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
+import subprocess  # nosec B404
 import tempfile
 from pathlib import Path
 from typing import Any
@@ -31,7 +31,7 @@ class TesseractOCRClient:
         return self._available
 
     async def extract_text(
-        self, image_data: bytes, language: str | None = None
+        self, image_data: bytes | str, language: str | None = None
     ) -> dict[str, Any]:
         """Extract text from image using Tesseract OCR."""
         if not self.is_available():
@@ -46,14 +46,23 @@ class TesseractOCRClient:
             # Use provided language or default
             ocr_language = language or self.languages
 
-            # Create temporary file for image
-            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_image:
-                temp_image.write(image_data)
-                temp_image_path = temp_image.name
+            # Handle both bytes and file path inputs
+            if isinstance(image_data, str):
+                # It's a file path
+                temp_image_path = image_data
+                cleanup_temp = False
+            else:
+                # It's bytes data - create temporary file
+                with tempfile.NamedTemporaryFile(
+                    suffix=".png", delete=False
+                ) as temp_image:
+                    temp_image.write(image_data)
+                    temp_image_path = temp_image.name
+                cleanup_temp = True
 
             try:
                 # Run Tesseract OCR
-                result = subprocess.run(
+                result = subprocess.run(  # nosec B603
                     [
                         self.tesseract_path,
                         temp_image_path,
@@ -84,8 +93,9 @@ class TesseractOCRClient:
                 }
 
             finally:
-                # Clean up temporary file
-                Path(temp_image_path).unlink(missing_ok=True)
+                # Clean up temporary file only if we created it
+                if cleanup_temp:
+                    Path(temp_image_path).unlink(missing_ok=True)
 
         except subprocess.CalledProcessError as e:
             logger.error("Tesseract OCR failed", error=e.stderr)
@@ -103,7 +113,7 @@ class TesseractOCRClient:
         """Get OCR confidence score."""
         try:
             # Run Tesseract with TSV output to get confidence
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603
                 [
                     self.tesseract_path,
                     image_path,
