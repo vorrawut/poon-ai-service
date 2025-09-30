@@ -31,11 +31,19 @@ class Settings(BaseSettings):
     port: int = Field(default=8001, description="Server port")
     reload: bool = Field(default=False, description="Auto-reload on code changes")
 
-    # Database settings
-    database_url: str = Field(
-        default="sqlite:///./spending.db", description="Database connection URL"
+    # Database settings - MongoDB
+    mongodb_url: str = Field(
+        default="mongodb://localhost:27017", description="MongoDB connection URL"
     )
-    database_echo: bool = Field(default=False, description="Echo SQL queries")
+    mongodb_database: str = Field(
+        default="spending_db", description="MongoDB database name"
+    )
+    mongodb_collection: str = Field(
+        default="spending_entries", description="MongoDB collection name"
+    )
+    mongodb_timeout: int = Field(
+        default=10, description="MongoDB connection timeout in seconds"
+    )
 
     # AI Service settings - Ollama/Llama
     ollama_url: str = Field(
@@ -141,6 +149,15 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return v
 
+    @field_validator("mongodb_timeout")
+    @classmethod
+    def validate_mongodb_timeout(cls, v: int) -> int:
+        """Validate MongoDB timeout."""
+        if v <= 0 or v > 300:
+            msg = "MongoDB timeout must be between 1 and 300 seconds"
+            raise ValueError(msg)
+        return v
+
     @field_validator("max_file_size_mb")
     @classmethod
     def validate_max_file_size(cls, v: int) -> int:
@@ -158,9 +175,13 @@ class Settings(BaseSettings):
         """Check if running in development environment."""
         return self.environment == "development"
 
-    def get_database_url(self) -> str:
-        """Get the database URL."""
-        return self.database_url
+    def get_mongodb_url(self) -> str:
+        """Get the MongoDB connection URL."""
+        return self.mongodb_url
+
+    def get_mongodb_database(self) -> str:
+        """Get the MongoDB database name."""
+        return self.mongodb_database
 
     def get_ollama_url(self) -> str:
         """Get the Ollama server URL."""

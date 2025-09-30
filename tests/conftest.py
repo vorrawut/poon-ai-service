@@ -28,8 +28,8 @@ from ai_service.domain.value_objects.spending_category import (
     PaymentMethod,
     SpendingCategory,
 )
-from ai_service.infrastructure.database.sqlite_repository import (
-    SqliteSpendingRepository,
+from ai_service.infrastructure.database.mongodb_repository import (
+    MongoDBSpendingRepository,
 )
 
 
@@ -44,9 +44,12 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 @pytest.fixture
 def test_settings() -> Settings:
     """Create test settings."""
-    # Use in-memory SQLite for tests
+    # Use test MongoDB for tests
     test_settings = Settings()
-    test_settings.database_url = "sqlite:///:memory:"
+    test_settings.mongodb_url = "mongodb://localhost:27017"
+    test_settings.mongodb_database = "test_spending_db"
+    test_settings.mongodb_collection = "test_spending_entries"
+    test_settings.mongodb_timeout = 5
     test_settings.environment = "test"
     test_settings.debug = True
     test_settings.use_llama = False  # Disable for tests
@@ -57,9 +60,11 @@ def test_settings() -> Settings:
 @pytest_asyncio.fixture
 async def test_repository(
     test_settings: Settings,
-) -> AsyncGenerator[SqliteSpendingRepository, None]:
-    """Create a test repository with in-memory database."""
-    repository = SqliteSpendingRepository(test_settings.database_url)
+) -> AsyncGenerator[MongoDBSpendingRepository, None]:
+    """Create a test repository with mock MongoDB implementation."""
+    from tests.mocks.mock_mongodb_repository import MockMongoDBSpendingRepository
+
+    repository = MockMongoDBSpendingRepository(test_settings)
     await repository.initialize()
     yield repository
     await repository.close()
@@ -123,12 +128,17 @@ async def test_app():
 
     app = create_app()
 
-    # Initialize test services
-    from ai_service.infrastructure.database.sqlite_repository import (
-        SqliteSpendingRepository,
-    )
+    # Initialize test services with mock repository
+    from ai_service.core.config import Settings
+    from tests.mocks.mock_mongodb_repository import MockMongoDBSpendingRepository
 
-    test_repo = SqliteSpendingRepository("sqlite:///:memory:")
+    test_settings = Settings()
+    test_settings.mongodb_url = "mongodb://localhost:27017"
+    test_settings.mongodb_database = "test_spending_db"
+    test_settings.mongodb_collection = "test_spending_entries"
+    test_settings.mongodb_timeout = 5
+
+    test_repo = MockMongoDBSpendingRepository(test_settings)
     await test_repo.initialize()
 
     app.state.spending_repository = test_repo

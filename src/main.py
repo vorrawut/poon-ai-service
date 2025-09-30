@@ -19,8 +19,8 @@ from ai_service.api.middleware.logging import LoggingMiddleware
 from ai_service.api.middleware.metrics import MetricsMiddleware
 from ai_service.api.v1.routes import api_router
 from ai_service.core.config import get_settings, setup_logging
-from ai_service.infrastructure.database.sqlite_repository import (
-    SqliteSpendingRepository,
+from ai_service.infrastructure.database.mongodb_repository import (
+    MongoDBSpendingRepository,
 )
 from ai_service.infrastructure.external_apis.llama_client import LlamaClient
 from ai_service.infrastructure.external_apis.ocr_client import TesseractOCRClient
@@ -38,7 +38,7 @@ class ServiceRegistry:
 
     def __init__(self) -> None:
         """Initialize service registry."""
-        self.spending_repository: SqliteSpendingRepository | None = None
+        self.spending_repository: MongoDBSpendingRepository | None = None
         self.llama_client: LlamaClient | None = None
         self.ocr_client: TesseractOCRClient | None = None
 
@@ -46,10 +46,10 @@ class ServiceRegistry:
         """Initialize all services."""
         logger.info("🚀 Initializing AI Service components...")
 
-        # Initialize database repository
-        self.spending_repository = SqliteSpendingRepository(settings.get_database_url())
+        # Initialize MongoDB repository
+        self.spending_repository = MongoDBSpendingRepository(settings)
         await self.spending_repository.initialize()
-        logger.info("✅ Database repository initialized")
+        logger.info("✅ MongoDB repository initialized")
 
         # Initialize Llama client if enabled
         if settings.use_llama:
