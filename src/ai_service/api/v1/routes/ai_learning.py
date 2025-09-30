@@ -17,7 +17,7 @@ from ..schemas.ai_learning import (
 
 logger = structlog.get_logger(__name__)
 
-router = APIRouter(prefix="/ai", tags=["AI Learning"])
+router = APIRouter(tags=["AI Learning"])
 
 
 @router.get(
