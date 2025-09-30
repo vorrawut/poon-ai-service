@@ -12,6 +12,7 @@ import structlog
 from ...domain.value_objects.spending_category import SpendingCategory
 from ...infrastructure.external_apis.llama_client import LlamaClient
 from .intelligent_cache_service import get_intelligent_cache
+from .intelligent_mapping_service import IntelligentMappingService
 
 logger = structlog.get_logger(__name__)
 
@@ -44,9 +45,14 @@ class SpendingPattern:
 class EnhancedTextProcessor:
     """Ultra-fast and accurate text processing for spending entries."""
 
-    def __init__(self, llama_client: LlamaClient | None = None) -> None:
+    def __init__(
+        self,
+        llama_client: LlamaClient | None = None,
+        mapping_service: IntelligentMappingService | None = None,
+    ) -> None:
         """Initialize enhanced text processor."""
         self._llama_client = llama_client
+        self._mapping_service = mapping_service
         self._patterns = self._initialize_patterns()
         self._intelligent_cache = get_intelligent_cache()
 
@@ -478,15 +484,15 @@ class EnhancedTextProcessor:
 
             if result and isinstance(result, dict):
                 # Validate and clean AI result
-                return self._validate_ai_result(result, text)
+                return await self._validate_ai_result(result, text, language)
 
         except Exception as e:
             logger.warning(f"AI processing failed: {e}")
 
         return None
 
-    def _validate_ai_result(
-        self, result: dict[str, Any], original_text: str
+    async def _validate_ai_result(
+        self, result: dict[str, Any], original_text: str, language: str = "en"
     ) -> dict[str, Any]:
         """Validate and clean AI processing result."""
         try:
@@ -499,10 +505,10 @@ class EnhancedTextProcessor:
             merchant = str(result.get("merchant", "Unknown")).strip()
             category = result.get("category", "Miscellaneous")
 
-            # Validate category
+            # Validate category using intelligent mapping
             valid_categories = [cat.value for cat in SpendingCategory]
             if category not in valid_categories:
-                category = self._map_category_fuzzy(category)
+                category = await self._map_category_intelligent(category, language)
 
             payment_method = result.get("payment_method") or self._infer_payment_method(
                 original_text
@@ -552,8 +558,9 @@ class EnhancedTextProcessor:
 
         amount = amounts[0] if amounts else 0.0
 
-        # Enhanced category inference
-        category = self._infer_category_from_keywords(text, language)
+        # Enhanced category inference using intelligent mapping
+        initial_category = self._infer_category_from_keywords(text, language)
+        category = await self._map_category_intelligent(initial_category, language)
 
         # Enhanced merchant extraction
         merchant = self._extract_merchant_fallback(text, language)
@@ -752,6 +759,27 @@ class EnhancedTextProcessor:
             return "Travel"
         else:
             return "Miscellaneous"
+
+    async def _map_category_intelligent(
+        self,
+        category: str,
+        language: str = "en",
+        user_id: str | None = None,
+        session_id: str | None = None,
+    ) -> str:
+        """Map category using intelligent mapping service with fallback."""
+        if self._mapping_service:
+            try:
+                result = await self._mapping_service.map_category(
+                    category, language, user_id, session_id
+                )
+                if result.is_successful():
+                    return result.category
+            except Exception as e:
+                logger.warning(f"Intelligent mapping failed: {e}")
+
+        # Fallback to fuzzy mapping
+        return self._map_category_fuzzy(category)
 
     def _map_category_fuzzy(self, category: str) -> str:
         """Map AI-generated categories to valid categories with fuzzy matching."""

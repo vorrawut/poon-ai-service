@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from .ai_learning import router as ai_learning_router
+from .category_mappings import router as category_mappings_router
 from .docs import router as docs_router
 from .health import router as health_router
 from .smart_insights import router as smart_insights_router
@@ -17,6 +18,9 @@ api_router.include_router(spending_router, prefix="/spending", tags=["Spending"]
 api_router.include_router(ai_learning_router, prefix="/ai", tags=["AI Learning"])
 api_router.include_router(
     smart_insights_router, prefix="/insights", tags=["Smart Insights"]
+)
+api_router.include_router(
+    category_mappings_router, prefix="/mappings", tags=["Category Mappings"]
 )
 api_router.include_router(docs_router, prefix="/docs", tags=["Documentation"])
 

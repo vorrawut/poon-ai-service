@@ -51,6 +51,8 @@ class ServiceRegistry:
         self.ai_learning_service: AILearningService | None = None
         self.smart_insights_service: SmartInsightsService | None = None
         self.spending_predictor_service: SpendingPredictorService | None = None
+        self.category_mapping_repository: Any | None = None
+        self.intelligent_mapping_service: Any | None = None
         self.llama_client: LlamaClient | None = None
         self.ocr_client: TesseractOCRClient | None = None
 
@@ -66,6 +68,27 @@ class ServiceRegistry:
         self.training_repository = MongoDBTrainingRepository(settings)
         await self.training_repository.initialize()
         logger.info("✅ MongoDB training repository initialized")
+
+        # Initialize Category Mapping Repository
+        from ai_service.infrastructure.database.category_mapping_repository import (
+            MongoCategoryMappingRepository,
+        )
+
+        self.category_mapping_repository = MongoCategoryMappingRepository(
+            client=self.spending_repository._client,
+            database_name=settings.database_name,
+        )
+        logger.info("✅ MongoDB category mapping repository initialized")
+
+        # Initialize Intelligent Mapping Service
+        from ai_service.application.services.intelligent_mapping_service import (
+            IntelligentMappingService,
+        )
+
+        self.intelligent_mapping_service = IntelligentMappingService(
+            repository=self.category_mapping_repository
+        )
+        logger.info("✅ Intelligent Mapping Service initialized")
 
         # Initialize AI Learning Service
         self.ai_learning_service = AILearningService(self.training_repository)
@@ -157,6 +180,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         app.state.smart_insights_service = service_registry.smart_insights_service
         app.state.spending_predictor_service = (
             service_registry.spending_predictor_service
+        )
+        app.state.category_mapping_repository = (
+            service_registry.category_mapping_repository
+        )
+        app.state.intelligent_mapping_service = (
+            service_registry.intelligent_mapping_service
         )
         app.state.llama_client = service_registry.llama_client
         app.state.ocr_client = service_registry.ocr_client

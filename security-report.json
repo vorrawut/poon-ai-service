@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "generated_at": "2025-09-30T18:36:25Z",
+  "generated_at": "2025-09-30T18:52:47Z",
   "metrics": {
     "_totals": {
       "CONFIDENCE.HIGH": 0,
@@ -11,7 +11,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 10670,
+      "loc": 13565,
       "nosec": 0,
       "skipped_tests": 4
     },
@@ -102,7 +102,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 16,
+      "loc": 20,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -116,6 +116,32 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 234,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/api/v1/routes/category_mapping.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 319,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/api/v1/routes/category_mappings.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 392,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -207,6 +233,32 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 73,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/api/v1/schemas/category_mapping.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 234,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/api/v1/schemas/category_mappings.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 156,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -375,7 +427,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 685,
+      "loc": 710,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -389,6 +441,19 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 269,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/application/services/intelligent_mapping_service.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 491,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -509,6 +574,19 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "src/ai_service/domain/entities/category_mapping.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 283,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "src/ai_service/domain/entities/spending_entry.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
@@ -584,6 +662,19 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 72,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/domain/repositories/category_mapping_repository.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 117,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -743,6 +834,32 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "src/ai_service/infrastructure/database/category_mapping_repository.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 523,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/ai_service/infrastructure/database/mapping_seeder.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 328,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "src/ai_service/infrastructure/database/mongodb_repository.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
@@ -869,7 +986,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 257,
+      "loc": 280,
       "nosec": 0,
       "skipped_tests": 0
     }
