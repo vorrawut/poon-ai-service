@@ -8,7 +8,7 @@ from typing import Any
 
 import structlog
 from motor.motor_asyncio import AsyncIOMotorCollection
-from pymongo import ASCENDING, DESCENDING, TEXT
+from pymongo import ASCENDING, DESCENDING, TEXT, ReplaceOne
 from pymongo.errors import DuplicateKeyError
 
 from ...domain.entities.category_mapping import (
@@ -228,7 +228,9 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
                         continue
 
             if pattern_conditions:
-                query["$or"].extend(pattern_conditions)
+                or_conditions = query["$or"]
+                if isinstance(or_conditions, list):
+                    or_conditions.extend(pattern_conditions)
 
             cursor = (
                 self._mappings.find(query).sort("priority", DESCENDING).limit(limit)
@@ -590,13 +592,11 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             operations = []
             for mapping in mappings:
                 operations.append(
-                    {
-                        "replaceOne": {
-                            "filter": {"id": mapping.id.value},
-                            "replacement": mapping.to_dict(),
-                            "upsert": True,
-                        }
-                    }
+                    ReplaceOne(
+                        filter={"id": mapping.id.value},
+                        replacement=mapping.to_dict(),
+                        upsert=True,
+                    )
                 )
 
             result = await self._mappings.bulk_write(operations, ordered=False)
@@ -612,7 +612,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
         try:
             cutoff_date = datetime.utcnow() - timedelta(days=days)
 
-            pipeline = [
+            pipeline: list[dict[str, Any]] = [
                 {
                     "$match": {
                         "status": MappingStatus.ACTIVE.value,
@@ -670,7 +670,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             if language:
                 match_filter["language"] = language
 
-            pipeline = [
+            pipeline: list[dict[str, Any]] = [
                 {"$match": match_filter},
                 {"$group": {"_id": "$target_category", "count": {"$sum": 1}}},
                 {"$sort": {"count": -1}},
@@ -692,7 +692,8 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             docs = await cursor.to_list(length=1)
 
             if docs:
-                return docs[0].get("updated_at", datetime.utcnow().isoformat())
+                updated_at = docs[0].get("updated_at")
+                return str(updated_at) if updated_at else datetime.utcnow().isoformat()
             else:
                 return datetime.utcnow().isoformat()
 
