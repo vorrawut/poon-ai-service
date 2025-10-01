@@ -1,6 +1,5 @@
 """Comprehensive tests for Confidence value object."""
 
-
 import pytest
 
 from src.ai_service.domain.value_objects.confidence import ConfidenceScore
@@ -95,7 +94,7 @@ class TestConfidenceScore:
         """Test string representation of confidence."""
         confidence = ConfidenceScore(0.75)
         assert str(confidence) == "75.0% (Medium)"
-        assert repr(confidence) == "ConfidenceScore(0.75)"
+        assert repr(confidence) == "ConfidenceScore(value=0.75)"
 
     def test_confidence_arithmetic(self):
         """Test confidence arithmetic operations."""
