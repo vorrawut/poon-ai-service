@@ -430,7 +430,7 @@ async def process_text(
                     language=text_data.language,
                     raw_ai_response=str(result),
                     parsed_ai_data=result,
-                    ai_confidence=result.get("confidence", 0.5),
+                    ai_confidence=min(1.0, float(result.get("confidence", 0.5))),
                     processing_time_ms=int(result.get("processing_time_ms", 0)),
                     model_version=f"{result.get('method', 'enhanced')}_processor",
                     user_id=getattr(request.state, "user_id", None),
@@ -553,7 +553,7 @@ async def process_text(
             transaction_date=datetime.utcnow(),
             category=mapped_category,
             payment_method=parsed_data.get("payment_method") or "Cash",
-            confidence=parsed_data.get("confidence") or 0.7,
+            confidence=min(1.0, float(parsed_data.get("confidence") or 0.7)),
             processing_method=_map_processing_method(result.get("method", "hybrid")),
             raw_text=text_data.text,
         )
