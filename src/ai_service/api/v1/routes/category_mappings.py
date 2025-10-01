@@ -13,6 +13,7 @@ from ....application.services.intelligent_mapping_service import (
 from ....domain.entities.category_mapping import (
     CategoryMapping,
     CategoryMappingId,
+    MappingSource,
     MappingStatus,
     MappingType,
 )
@@ -34,12 +35,22 @@ router = APIRouter()
 
 async def get_mapping_repository(request: Request) -> CategoryMappingRepository:
     """Get category mapping repository from app state."""
-    return request.app.state.category_mapping_repository
+    repository = getattr(request.app.state, "category_mapping_repository", None)
+    if repository is None:
+        raise HTTPException(
+            status_code=500, detail="Category mapping repository not initialized"
+        )
+    return repository
 
 
 async def get_mapping_service(request: Request) -> IntelligentMappingService:
     """Get intelligent mapping service from app state."""
-    return request.app.state.intelligent_mapping_service
+    service = getattr(request.app.state, "intelligent_mapping_service", None)
+    if service is None:
+        raise HTTPException(
+            status_code=500, detail="Intelligent mapping service not initialized"
+        )
+    return service
 
 
 @router.get("/", response_model=list[CategoryMappingResponse])
@@ -179,7 +190,9 @@ async def update_mapping(
         if request.confidence is not None:
             existing_mapping.confidence = request.confidence
         if request.is_active is not None:
-            existing_mapping.is_active = request.is_active
+            existing_mapping.status = (
+                MappingStatus.ACTIVE if request.is_active else MappingStatus.DEPRECATED
+            )
         if request.metadata is not None:
             existing_mapping.metadata = request.metadata
 
@@ -302,7 +315,7 @@ async def approve_candidate(
             mapping_type=MappingType.CATEGORY,
             language=candidate.language,
             confidence=candidate.suggested_confidence,
-            source=candidate.suggestion_source,
+            source=MappingSource(candidate.suggestion_source),
             status=MappingStatus.ACTIVE,
             metadata={"approved_from_candidate": candidate_id},
         )
@@ -384,7 +397,7 @@ async def get_mapping_stats(
 
 
 @router.post("/test", response_model=dict[str, Any])
-async def test_category_mapping(
+async def validate_category_mapping(
     request: dict[str, str],
     mapping_service: IntelligentMappingService = Depends(get_mapping_service),
 ) -> dict[str, Any]:

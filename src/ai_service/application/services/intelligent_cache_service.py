@@ -199,7 +199,7 @@ class IntelligentCacheService:
                     confidence_boost = cached_item.get("confidence", 0.5)
                     similarity *= 1 + confidence_boost * 0.5
 
-                    if similarity > best_similarity and similarity > 0.7:
+                    if similarity > best_similarity and similarity > 0.85:
                         best_similarity = similarity
                         best_match = cached_item["result"].copy()
 
@@ -275,23 +275,23 @@ class IntelligentCacheService:
                 },
             ),
             (
-                "ข้าว ร้านอาหาร 80 บาท",
+                "กินข้าวที่ร้านอาหาร 120 บาท",
                 "th",
                 {
-                    "amount": 80.0,
+                    "amount": 120.0,
                     "currency": "THB",
                     "merchant": "ร้านอาหาร",
                     "category": "Food & Dining",
                     "payment_method": "Cash",
-                    "description": "ข้าว ร้านอาหาร",
+                    "description": "กินข้าวที่ร้านอาหาร",
                     "confidence": 0.9,
                 },
             ),
             (
-                "แท็กซี่ 120 บาท",
+                "แท็กซี่ 80 บาท",
                 "th",
                 {
-                    "amount": 120.0,
+                    "amount": 80.0,
                     "currency": "THB",
                     "merchant": "แท็กซี่",
                     "category": "Transportation",

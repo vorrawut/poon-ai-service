@@ -20,8 +20,6 @@ from ...infrastructure.resilience.circuit_breaker import (
 
 if TYPE_CHECKING:
     from ...domain.repositories.ai_training_repository import AITrainingRepository
-    from ...infrastructure.cache.redis_cache import AICache
-    from ...infrastructure.events.event_stream import AIEventPublisher
 
 logger = structlog.get_logger(__name__)
 
@@ -32,13 +30,9 @@ class AILearningService:
     def __init__(
         self,
         training_repository: AITrainingRepository,
-        cache: AICache | None = None,
-        event_publisher: AIEventPublisher | None = None,
     ) -> None:
         """Initialize AI learning service."""
         self._training_repository = training_repository
-        self._cache = cache
-        self._event_publisher = event_publisher
         self._category_mappings_cache: dict[str, str] = {}
         self._last_cache_update: datetime | None = None
 
@@ -72,21 +66,6 @@ class AILearningService:
 
         await self._training_repository.save(training_data)
         logger.info(f"Recorded AI interaction: {training_data.id.value}")
-
-        # Publish event for real-time processing
-        if self._event_publisher:
-            try:
-                await self._event_publisher.publish_ai_interaction(
-                    interaction_id=training_data.id.value,
-                    input_text=input_text,
-                    language=language,
-                    ai_response=parsed_ai_data,
-                    processing_time_ms=processing_time_ms,
-                    confidence=ai_confidence,
-                    model_version=model_version,
-                )
-            except Exception as e:
-                logger.warning(f"Failed to publish AI interaction event: {e}")
 
         return training_data
 
@@ -150,14 +129,6 @@ class AILearningService:
         """Get dynamically learned category mappings."""
 
         # Try cache first
-        if self._cache:
-            try:
-                cached_mappings = await self._cache.get_category_mappings()
-                if cached_mappings:
-                    return cached_mappings
-            except Exception as e:
-                logger.warning(f"Failed to get cached category mappings: {e}")
-
         # Update cache if needed (every hour)
         now = datetime.utcnow()
         if (
@@ -328,11 +299,7 @@ class AILearningService:
             self._last_cache_update = datetime.utcnow()
 
             # Update Redis cache
-            if self._cache:
-                try:
-                    await self._cache.set_category_mappings(comprehensive_mappings)
-                except Exception as e:
-                    logger.warning(f"Failed to cache category mappings: {e}")
+            # Cache updated successfully
 
             logger.info(
                 f"Updated comprehensive category mappings: {len(comprehensive_mappings)} total mappings "

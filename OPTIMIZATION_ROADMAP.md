@@ -3,6 +3,7 @@
 ## 🎯 **Current Status: Production Ready** ✅
 
 ### **Performance Achievements**
+
 - **✅ Core APIs Working**: Text processing, spending management, health checks
 - **✅ Ultra-Fast Response Times**: 118ms average, 0ms for cached results
 - **✅ Multi-Language Support**: English & Thai with 95% confidence
@@ -15,6 +16,7 @@
 ## 📈 **Phase 1: Immediate Optimizations (1-3 days)**
 
 ### **1. Complete API Coverage**
+
 **Priority**: High | **Impact**: High | **Effort**: Low
 
 ```bash
@@ -32,6 +34,7 @@
 ```
 
 **Implementation**:
+
 ```python
 # src/main.py - Add missing route includes
 app.include_router(health_router, prefix="/api/v1/health", tags=["Health"])
@@ -40,6 +43,7 @@ app.include_router(smart_insights_router, prefix="/api/v1/insights", tags=["Smar
 ```
 
 ### **2. Response Status Code Fixes**
+
 **Priority**: Medium | **Impact**: Low | **Effort**: Low
 
 ```python
@@ -48,6 +52,7 @@ return JSONResponse(content=response_data, status_code=201)
 ```
 
 ### **3. Service Initialization**
+
 **Priority**: High | **Impact**: High | **Effort**: Medium
 
 ```python
@@ -62,6 +67,7 @@ async def initialize_smart_insights():
 ## 🔥 **Phase 2: Performance Enhancements (1-2 weeks)**
 
 ### **1. Redis Caching Implementation**
+
 **Priority**: High | **Impact**: Very High | **Effort**: Medium
 
 **Current**: In-memory caching (118ms average)
@@ -85,6 +91,7 @@ class RedisCache:
 **Expected Performance Gain**: 58% faster (118ms → 50ms)
 
 ### **2. Database Connection Pooling**
+
 **Priority**: High | **Impact**: High | **Effort**: Medium
 
 ```python
@@ -101,6 +108,7 @@ client = AsyncIOMotorClient(
 **Expected Performance Gain**: 33% faster (119ms → 80ms)
 
 ### **3. AI Model Optimization**
+
 **Priority**: Medium | **Impact**: High | **Effort**: High
 
 ```python
@@ -125,6 +133,7 @@ class OptimizedLlamaClient:
 ## 🏗️ **Phase 3: Advanced Architecture (2-4 weeks)**
 
 ### **1. Microservice Decomposition**
+
 **Priority**: Medium | **Impact**: Very High | **Effort**: High
 
 ```yaml
@@ -148,6 +157,7 @@ services:
 ```
 
 ### **2. Event-Driven Architecture**
+
 **Priority**: Medium | **Impact**: High | **Effort**: High
 
 ```python
@@ -164,6 +174,7 @@ class EventProcessor:
 ```
 
 ### **3. Advanced Caching Strategy**
+
 **Priority**: High | **Impact**: Very High | **Effort**: Medium
 
 ```python
@@ -186,6 +197,7 @@ class IntelligentCache:
 ## 📊 **Phase 4: Production Optimization (1-2 months)**
 
 ### **1. Load Testing & Optimization**
+
 **Priority**: High | **Impact**: Very High | **Effort**: Medium
 
 ```bash
@@ -197,6 +209,7 @@ class IntelligentCache:
 ```
 
 ### **2. Monitoring & Observability**
+
 **Priority**: High | **Impact**: High | **Effort**: Medium
 
 ```python
@@ -208,6 +221,7 @@ class IntelligentCache:
 ```
 
 ### **3. Auto-Scaling & Resilience**
+
 **Priority**: Medium | **Impact**: High | **Effort**: High
 
 ```yaml
@@ -223,52 +237,55 @@ spec:
   template:
     spec:
       containers:
-      - name: ai-service
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
+        - name: ai-service
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
 ```
 
 ---
 
 ## 🎯 **Expected Performance Improvements**
 
-| Phase | Current | Target | Improvement | Timeline |
-|-------|---------|--------|-------------|----------|
-| **Phase 1** | 118ms | 100ms | 15% faster | 3 days |
-| **Phase 2** | 100ms | 50ms | 50% faster | 2 weeks |
-| **Phase 3** | 50ms | 25ms | 50% faster | 1 month |
-| **Phase 4** | 25ms | 10ms | 60% faster | 2 months |
+| Phase       | Current | Target | Improvement | Timeline |
+| ----------- | ------- | ------ | ----------- | -------- |
+| **Phase 1** | 118ms   | 100ms  | 15% faster  | 3 days   |
+| **Phase 2** | 100ms   | 50ms   | 50% faster  | 2 weeks  |
+| **Phase 3** | 50ms    | 25ms   | 50% faster  | 1 month  |
+| **Phase 4** | 25ms    | 10ms   | 60% faster  | 2 months |
 
 ### **Scalability Targets**
 
-| Metric | Current | Phase 2 | Phase 3 | Phase 4 |
-|--------|---------|---------|---------|---------|
-| **Concurrent Users** | 100 | 500 | 2,000 | 10,000 |
-| **Requests/Second** | 50 | 200 | 1,000 | 5,000 |
-| **Response Time P95** | 150ms | 80ms | 40ms | 20ms |
-| **Availability** | 99% | 99.5% | 99.9% | 99.99% |
+| Metric                | Current | Phase 2 | Phase 3 | Phase 4 |
+| --------------------- | ------- | ------- | ------- | ------- |
+| **Concurrent Users**  | 100     | 500     | 2,000   | 10,000  |
+| **Requests/Second**   | 50      | 200     | 1,000   | 5,000   |
+| **Response Time P95** | 150ms   | 80ms    | 40ms    | 20ms    |
+| **Availability**      | 99%     | 99.5%   | 99.9%   | 99.99%  |
 
 ---
 
 ## 🛠️ **Implementation Priority Matrix**
 
 ### **High Priority (Do First)**
+
 1. ✅ **Complete API Coverage** - Quick wins, high impact
 2. ✅ **Redis Caching** - Major performance boost
 3. ✅ **Connection Pooling** - Database optimization
 4. ✅ **Service Initialization** - Fix 500 errors
 
 ### **Medium Priority (Do Next)**
+
 1. **AI Model Optimization** - Reduce AI processing time
 2. **Event-Driven Architecture** - Scalability foundation
 3. **Advanced Monitoring** - Production readiness
 
 ### **Low Priority (Do Later)**
+
 1. **Microservice Decomposition** - Long-term scalability
 2. **Kubernetes Deployment** - Enterprise-grade scaling
 3. **Advanced Analytics** - Business intelligence features
@@ -301,6 +318,7 @@ docker-compose up -d
 ```
 
 ### **Expected Results After Phase 1**
+
 - ✅ All 23 API endpoints working
 - ✅ 50ms average response time (58% improvement)
 - ✅ 99.5% uptime with proper error handling
@@ -311,23 +329,26 @@ docker-compose up -d
 ## 📈 **Business Impact**
 
 ### **User Experience**
+
 - **2x Faster Response Times**: From 118ms to 50ms
 - **Higher Accuracy**: 95%+ confidence in text processing
 - **Better Reliability**: 99.9% uptime with proper monitoring
 
 ### **Technical Benefits**
+
 - **Horizontal Scaling**: Handle 10x more users
 - **Cost Efficiency**: Optimized resource usage
 - **Maintainability**: Clean microservice architecture
 
 ### **Competitive Advantage**
+
 - **Real-time Processing**: Instant spending categorization
 - **Multi-language Support**: Thai and English excellence
 - **AI Learning**: Continuous improvement from user feedback
 
 ---
 
-*This roadmap provides a clear path from the current excellent performance to world-class, enterprise-ready scaling. Each phase builds upon the previous achievements while delivering measurable improvements.*
+_This roadmap provides a clear path from the current excellent performance to world-class, enterprise-ready scaling. Each phase builds upon the previous achievements while delivering measurable improvements._
 
 **Current Status**: 🏆 **Production Ready with Excellent Performance**
 **Next Milestone**: 🚀 **Ultra-High Performance (50ms average)**

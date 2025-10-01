@@ -567,22 +567,28 @@ async def process_text(
             )
 
         # Clean parsed data for response (remove None values)
-        cleaned_parsed_data = {
-            "amount": float(parsed_data.get("amount") or 0.0),
-            "currency": str(parsed_data.get("currency") or "THB"),
-            "merchant": str(parsed_data.get("merchant") or "Unknown Merchant"),
-            "category": str(mapped_category),  # Use the already mapped category
-            "payment_method": str(parsed_data.get("payment_method") or "Cash"),
-            "description": str(parsed_data.get("description") or text_data.text),
-            "confidence": float(parsed_data.get("confidence") or 0.7),
-        }
+        amount = float(parsed_data.get("amount") or 0.0)
+        currency = str(parsed_data.get("currency") or "THB")
+        merchant = str(parsed_data.get("merchant") or "Unknown Merchant")
+        category = str(mapped_category)  # Use the already mapped category
+        payment_method = str(parsed_data.get("payment_method") or "Cash")
+        description = str(parsed_data.get("description") or text_data.text)
+        confidence = float(parsed_data.get("confidence") or 0.7)
 
         return ProcessTextResponse(
             status="success",
             message="Text processed and spending entry created",
             entry_id=create_result.data["entry_id"],
-            parsed_data=ParsedSpendingData(**cleaned_parsed_data),
-            confidence=float(cleaned_parsed_data["confidence"]),
+            parsed_data=ParsedSpendingData(
+                amount=amount,
+                currency=currency,
+                merchant=merchant,
+                category=category,
+                payment_method=payment_method,
+                description=description,
+                confidence=confidence,
+            ),
+            confidence=confidence,
             processing_time_ms=int(result.get("processing_time_ms", 0)),
         )
 

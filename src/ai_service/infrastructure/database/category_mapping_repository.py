@@ -30,8 +30,12 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
         """Initialize repository with database connection."""
         self._client = client
         self._db = client[database_name]
-        self._mappings: AsyncIOMotorCollection = self._db.category_mappings
-        self._candidates: AsyncIOMotorCollection = self._db.mapping_candidates
+        self._mappings: AsyncIOMotorCollection[
+            dict[str, Any]
+        ] = self._db.category_mappings
+        self._candidates: AsyncIOMotorCollection[
+            dict[str, Any]
+        ] = self._db.mapping_candidates
 
     async def initialize(self) -> None:
         """Initialize database indexes and collections."""
@@ -92,7 +96,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
                 query["status"] = (
                     MappingStatus.ACTIVE.value
                     if is_active
-                    else MappingStatus.INACTIVE.value
+                    else MappingStatus.DEPRECATED.value
                 )
 
             cursor = (
@@ -134,7 +138,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
                 query["status"] = (
                     MappingStatus.ACTIVE.value
                     if is_active
-                    else MappingStatus.INACTIVE.value
+                    else MappingStatus.DEPRECATED.value
                 )
 
             return await self._mappings.count_documents(query)
@@ -171,21 +175,23 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             return None
 
     async def find_by_key(
-        self, key: str, language: str = "en"
-    ) -> CategoryMapping | None:
+        self, key: str, language: str, mapping_type: MappingType = MappingType.CATEGORY
+    ) -> list[CategoryMapping]:
         """Find mapping by exact key match."""
         try:
-            doc = await self._mappings.find_one(
+            cursor = self._mappings.find(
                 {
                     "key": key.lower().strip(),
                     "language": language,
+                    "mapping_type": mapping_type.value,
                     "status": MappingStatus.ACTIVE.value,
                 }
             )
-            return CategoryMapping.from_dict(doc) if doc else None
+            docs = await cursor.to_list(length=None)
+            return [CategoryMapping.from_dict(doc) for doc in docs]
         except Exception as e:
             logger.error(f"Failed to find mapping by key {key}: {e}")
-            return None
+            return []
 
     async def find_by_text(
         self, text: str, language: str = "en", limit: int = 10
@@ -206,7 +212,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             }
 
             # Add pattern matching for entries with patterns
-            pattern_conditions = []
+            pattern_conditions: list[dict[str, Any]] = []
             async for doc in self._mappings.find(
                 {
                     "patterns": {"$exists": True, "$ne": []},
@@ -304,7 +310,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
         """Update usage statistics for a mapping."""
         try:
             # Get current mapping to calculate new success rate
-            mapping = await self.find_by_id(mapping_id)
+            mapping = await self.get_by_id(mapping_id)
             if not mapping:
                 return
 

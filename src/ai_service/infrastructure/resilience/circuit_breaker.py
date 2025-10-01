@@ -59,7 +59,7 @@ class CircuitBreakerError(Exception):
 class CircuitBreaker:
     """Circuit breaker implementation with async support."""
 
-    def __init__(self, name: str, config: CircuitBreakerConfig = None) -> None:
+    def __init__(self, name: str, config: CircuitBreakerConfig | None = None) -> None:
         """Initialize circuit breaker."""
         self.name = name
         self.config = config or CircuitBreakerConfig()
@@ -67,7 +67,7 @@ class CircuitBreaker:
         self.stats = CircuitBreakerStats()
         self._lock = asyncio.Lock()
 
-    async def call(self, func: Callable[..., T], *args, **kwargs) -> T:
+    async def call(self, func: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         """Execute function with circuit breaker protection."""
         async with self._lock:
             await self._check_state()
@@ -79,21 +79,30 @@ class CircuitBreaker:
 
         try:
             # Execute with timeout
-            result = await asyncio.wait_for(
-                func(*args, **kwargs), timeout=self.config.timeout
-            )
+            func_result = func(*args, **kwargs)
+            if asyncio.iscoroutine(func_result):
+                result: T = await asyncio.wait_for(
+                    func_result, timeout=self.config.timeout
+                )
+            else:
+                result = func_result
 
             await self._on_success()
             return result
 
-        except self.config.expected_exception:
-            await self._on_failure()
-            raise
-        except TimeoutError as e:
-            await self._on_failure()
-            raise CircuitBreakerError(
-                f"Circuit breaker '{self.name}' timeout", self.name, self.state
-            ) from e
+        except Exception as e:
+            if isinstance(e, self.config.expected_exception):
+                await self._on_failure()
+                raise
+            elif isinstance(e, TimeoutError):
+                await self._on_failure()
+                raise CircuitBreakerError(
+                    f"Circuit breaker '{self.name}' timeout", self.name, self.state
+                ) from e
+            else:
+                # Unexpected exception, also trigger failure
+                await self._on_failure()
+                raise
 
     async def _check_state(self) -> None:
         """Check and update circuit breaker state."""
@@ -237,7 +246,7 @@ class CircuitBreakerRegistry:
         self._lock = asyncio.Lock()
 
     async def get_breaker(
-        self, name: str, config: CircuitBreakerConfig = None
+        self, name: str, config: CircuitBreakerConfig | None = None
     ) -> CircuitBreaker:
         """Get or create circuit breaker."""
         async with self._lock:
@@ -249,9 +258,9 @@ class CircuitBreakerRegistry:
         self,
         name: str,
         func: Callable[..., T],
-        config: CircuitBreakerConfig = None,
-        *args,
-        **kwargs,
+        config: CircuitBreakerConfig | None = None,
+        *args: Any,
+        **kwargs: Any,
     ) -> T:
         """Execute function with circuit breaker protection."""
         breaker = await self.get_breaker(name, config)
@@ -281,11 +290,13 @@ circuit_breaker_registry = CircuitBreakerRegistry()
 
 
 # Decorator for easy circuit breaker usage
-def circuit_breaker(name: str, config: CircuitBreakerConfig = None):
+def circuit_breaker(
+    name: str, config: CircuitBreakerConfig | None = None
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to add circuit breaker protection to async functions."""
 
-    def decorator(func: Callable[..., T]) -> Callable[..., T]:
-        async def wrapper(*args, **kwargs) -> T:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             return await circuit_breaker_registry.call_with_breaker(
                 name, func, config, *args, **kwargs
             )

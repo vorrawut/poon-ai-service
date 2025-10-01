@@ -288,7 +288,7 @@ async def get_spending_recommendations(
         )
 
         # Group recommendations by type
-        recommendations = {
+        recommendations: dict[str, list[dict[str, Any]]] = {
             "optimization": [],
             "budgeting": [],
             "savings": [],
@@ -340,7 +340,7 @@ async def get_spending_trends(
     request: Request,
     period: str = Query(
         "monthly",
-        regex="^(daily|weekly|monthly|quarterly)$",
+        pattern="^(daily|weekly|monthly|quarterly)$",
         description="Trend analysis period",
     ),
     category: SpendingCategory | None = Query(
@@ -370,7 +370,7 @@ async def get_spending_trends(
             in ["spending_pattern", "seasonal_pattern", "spending_prediction"]
         ]
 
-        trends = {
+        trends: dict[str, Any] = {
             "period": period,
             "category": category.value if category else "all",
             "trend_insights": [insight.to_dict() for insight in trend_insights],
