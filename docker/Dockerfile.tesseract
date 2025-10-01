@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for AI Service with Tesseract OCR
-FROM python:3.11-slim as base
+FROM python:3.11-slim AS base
 
 # Install system dependencies for Tesseract and utilities
 RUN apt-get update && apt-get install -y \
@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Development stage
-FROM base as development
+FROM base AS development
 COPY requirements-dev.txt .
 RUN pip install --no-cache-dir -r requirements-dev.txt
 
@@ -42,7 +42,7 @@ ENV PYTHONPATH=/app/src:/app
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
 
 # Production stage
-FROM base as production
+FROM base AS production
 COPY src/ ./src/
 COPY main.py ./
 
