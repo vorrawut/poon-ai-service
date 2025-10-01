@@ -157,17 +157,20 @@ class TestAILearningService:
     ):
         """Test that category mappings are cached."""
         # Arrange
-        expected_mappings = {"restaurant": "Food & Dining", "hotel": "Travel"}
-        mock_repository.get_category_mapping_insights.return_value = expected_mappings
+        learned_mappings = {"restaurant": "Food & Dining", "hotel": "Travel"}
+        mock_repository.get_category_mapping_insights.return_value = learned_mappings
 
         # Act - First call
         result1 = await ai_service.get_dynamic_category_mapping()
         # Act - Second call (should use cache)
         result2 = await ai_service.get_dynamic_category_mapping()
 
-        # Assert
-        assert result1 == expected_mappings
-        assert result2 == expected_mappings
+        # Assert - Should contain learned mappings plus comprehensive ones
+        assert "restaurant" in result1
+        assert result1["restaurant"] == "Food & Dining"
+        assert "hotel" in result1
+        assert result1["hotel"] == "Travel"
+        assert result1 == result2  # Should be identical (cached)
         # Repository should only be called once due to caching
         mock_repository.get_category_mapping_insights.assert_called_once()
 
@@ -189,8 +192,9 @@ class TestAILearningService:
         # Act - Second call (should refresh cache)
         result = await ai_service.get_dynamic_category_mapping()
 
-        # Assert
-        assert result == expected_mappings
+        # Assert - Should contain learned mappings plus comprehensive ones
+        assert "restaurant" in result
+        assert result["restaurant"] == "Food & Dining"
         # Repository should be called twice due to cache expiry
         assert mock_repository.get_category_mapping_insights.call_count == 2
 
@@ -430,76 +434,5 @@ class TestAILearningService:
         assert report == {}  # Should return empty dict on error
 
 
-class TestAILearningServiceWithCache:
-    """Test AI learning service with cache integration."""
-
-    @pytest.fixture
-    def mock_repository(self):
-        """Create mock training repository."""
-        return AsyncMock(spec=AITrainingRepository)
-
-    @pytest.fixture
-    def mock_cache(self):
-        """Create mock cache."""
-        cache = AsyncMock()
-        cache.get_category_mappings.return_value = None
-        cache.set_category_mappings.return_value = None
-        return cache
-
-    @pytest.fixture
-    def ai_service_with_cache(self, mock_repository, mock_cache):
-        """Create AI learning service with cache."""
-        return AILearningService(mock_repository, cache=mock_cache)
-
-    @pytest.mark.asyncio
-    async def test_get_category_mapping_uses_cache(
-        self, ai_service_with_cache, mock_repository, mock_cache
-    ):
-        """Test that category mapping uses cache when available."""
-        # Arrange
-        cached_mappings = {"restaurant": "Food & Dining"}
-        mock_cache.get_category_mappings.return_value = cached_mappings
-
-        # Act
-        result = await ai_service_with_cache.get_dynamic_category_mapping()
-
-        # Assert
-        assert result == cached_mappings
-        mock_cache.get_category_mappings.assert_called_once()
-        mock_repository.get_category_mapping_insights.assert_not_called()
-
-    @pytest.mark.asyncio
-    async def test_get_category_mapping_updates_cache(
-        self, ai_service_with_cache, mock_repository, mock_cache
-    ):
-        """Test that category mapping updates cache when not available."""
-        # Arrange
-        mock_cache.get_category_mappings.return_value = None
-        repo_mappings = {"hotel": "Travel"}
-        mock_repository.get_category_mapping_insights.return_value = repo_mappings
-
-        # Act
-        result = await ai_service_with_cache.get_dynamic_category_mapping()
-
-        # Assert
-        assert result == repo_mappings
-        mock_cache.get_category_mappings.assert_called_once()
-        mock_repository.get_category_mapping_insights.assert_called_once()
-        mock_cache.set_category_mappings.assert_called_once_with(repo_mappings)
-
-    @pytest.mark.asyncio
-    async def test_cache_error_handling(
-        self, ai_service_with_cache, mock_repository, mock_cache
-    ):
-        """Test that cache errors don't break the service."""
-        # Arrange
-        mock_cache.get_category_mappings.side_effect = Exception("Cache error")
-        repo_mappings = {"hotel": "Travel"}
-        mock_repository.get_category_mapping_insights.return_value = repo_mappings
-
-        # Act
-        result = await ai_service_with_cache.get_dynamic_category_mapping()
-
-        # Assert
-        assert result == repo_mappings
-        mock_repository.get_category_mapping_insights.assert_called_once()
+# Cache functionality was removed from AILearningService to simplify the architecture
+# The service now uses internal caching without external Redis dependency

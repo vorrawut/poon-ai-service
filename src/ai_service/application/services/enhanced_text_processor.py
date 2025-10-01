@@ -440,7 +440,7 @@ class EnhancedTextProcessor:
                     if (language == "th" and "thai" in pattern.name) or (
                         language == "en" and "english" in pattern.name
                     ):
-                        confidence += 0.1
+                        confidence = min(1.0, confidence + 0.1)  # Cap at 1.0
 
                     if confidence > best_confidence:
                         best_confidence = confidence

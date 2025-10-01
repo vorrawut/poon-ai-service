@@ -199,6 +199,9 @@ class IntelligentCacheService:
                     confidence_boost = cached_item.get("confidence", 0.5)
                     similarity *= 1 + confidence_boost * 0.5
 
+                    # Cap similarity at 1.0 to prevent confidence overflow
+                    similarity = min(similarity, 1.0)
+
                     if similarity > best_similarity and similarity > 0.85:
                         best_similarity = similarity
                         best_match = cached_item["result"].copy()

@@ -35,17 +35,17 @@ class TestConfidenceScore:
     def test_invalid_confidence_values(self):
         """Test invalid confidence values raise errors."""
         with pytest.raises(
-            ValueError, match="Confidence score must be between 0.0 and 1.0"
+            ValueError, match=r"Confidence score must be between 0\.0 and 1\.0"
         ):
             ConfidenceScore(-0.1)
 
         with pytest.raises(
-            ValueError, match="Confidence score must be between 0.0 and 1.0"
+            ValueError, match=r"Confidence score must be between 0\.0 and 1\.0"
         ):
             ConfidenceScore(1.1)
 
         with pytest.raises(
-            ValueError, match="Confidence score must be between 0.0 and 1.0"
+            ValueError, match=r"Confidence score must be between 0\.0 and 1\.0"
         ):
             ConfidenceScore(2.0)
 
