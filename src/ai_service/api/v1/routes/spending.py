@@ -401,7 +401,7 @@ async def process_text(
     """Process natural language text into structured spending entries using ultra-fast AI."""
     from datetime import datetime
 
-    from ...application.services.enhanced_text_processor import EnhancedTextProcessor
+    from ....application.services.enhanced_text_processor import EnhancedTextProcessor
 
     datetime.utcnow()
 
@@ -431,7 +431,7 @@ async def process_text(
                     raw_ai_response=str(result),
                     parsed_ai_data=result,
                     ai_confidence=result.get("confidence", 0.5),
-                    processing_time_ms=result.get("processing_time_ms", 0),
+                    processing_time_ms=int(result.get("processing_time_ms", 0)),
                     model_version=f"{result.get('method', 'enhanced')}_processor",
                     user_id=getattr(request.state, "user_id", None),
                     session_id=getattr(request.state, "session_id", None),
@@ -449,7 +449,7 @@ async def process_text(
                         language=text_data.language,
                         error_message="No valid amount extracted",
                         raw_ai_response=str(result),
-                        processing_time_ms=result.get("processing_time_ms", 0),
+                        processing_time_ms=int(result.get("processing_time_ms", 0)),
                     )
                 except Exception as e:
                     logger.warning(f"Failed to record processing failure: {e}")
@@ -470,6 +470,31 @@ async def process_text(
         )
 
         repository = request.app.state.spending_repository
+
+        # Map processing methods to valid ProcessingMethod enum values
+        def _map_processing_method(method: str) -> str:
+            """Map enhanced processor methods to valid ProcessingMethod enum values."""
+            method_mapping = {
+                "pattern": "nlp_parsing",
+                "ai": "ai_enhanced",
+                "llama": "llama_enhanced",
+                "fallback": "nlp_parsing",
+                "cache_pattern": "template_based",
+                "cache_similarity_cache": "template_based",
+                "similarity_cache": "template_based",
+                "hybrid": "nlp_ai",
+                "timeout_fallback": "nlp_parsing",
+            }
+
+            # Handle enhanced_ prefix
+            if method.startswith("enhanced_"):
+                method = method[9:]  # Remove "enhanced_" prefix
+
+            # Handle cache_ prefix
+            if method.startswith("cache_"):
+                method = method[6:]  # Remove "cache_" prefix
+
+            return method_mapping.get(method, "nlp_parsing")
 
         # Map AI categories to valid SpendingCategory values using dynamic learning
         async def map_category(ai_category: str | None) -> str:
@@ -529,7 +554,7 @@ async def process_text(
             category=mapped_category,
             payment_method=parsed_data.get("payment_method") or "Cash",
             confidence=parsed_data.get("confidence") or 0.7,
-            processing_method=f"enhanced_{result.get('method', 'hybrid')}",
+            processing_method=_map_processing_method(result.get("method", "hybrid")),
             raw_text=text_data.text,
         )
 
@@ -537,7 +562,9 @@ async def process_text(
         create_result = await handler.handle(command)
 
         if create_result.is_failure():
-            raise HTTPException(status_code=400, detail=create_result.message)
+            raise HTTPException(
+                status_code=400, detail="Failed to create spending entry"
+            )
 
         # Clean parsed data for response (remove None values)
         cleaned_parsed_data = {
@@ -556,7 +583,7 @@ async def process_text(
             entry_id=create_result.data["entry_id"],
             parsed_data=ParsedSpendingData(**cleaned_parsed_data),
             confidence=float(cleaned_parsed_data["confidence"]),
-            processing_time_ms=result.get("processing_time_ms", 0),
+            processing_time_ms=int(result.get("processing_time_ms", 0)),
         )
 
     except HTTPException:

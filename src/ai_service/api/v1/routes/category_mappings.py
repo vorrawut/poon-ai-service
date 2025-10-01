@@ -208,7 +208,7 @@ async def update_mapping(
 async def delete_mapping(
     mapping_id: str,
     repository: CategoryMappingRepository = Depends(get_mapping_repository),
-) -> None:
+):
     """Delete a category mapping."""
     try:
         mapping_id_obj = CategoryMappingId.from_string(mapping_id)
@@ -332,7 +332,7 @@ async def approve_candidate(
 async def reject_candidate(
     candidate_id: str,
     repository: CategoryMappingRepository = Depends(get_mapping_repository),
-) -> None:
+):
     """Reject a mapping candidate."""
     try:
         from ....domain.entities.category_mapping import MappingCandidateId

@@ -107,6 +107,7 @@ class CreateSpendingEntryCommandHandler(
             )
 
         except Exception as e:
+            logger.error(f"Failed to create spending entry: {e}")
             return CommandResult.failure_result(
                 message="Failed to create spending entry", errors=[str(e)]
             )

@@ -18,18 +18,42 @@ class CategoryMappingRepository(ABC):
     """Abstract repository for category mapping operations."""
 
     @abstractmethod
-    async def save_mapping(self, mapping: CategoryMapping) -> None:
+    async def save(self, mapping: CategoryMapping) -> CategoryMapping:
         """Save or update a category mapping."""
 
     @abstractmethod
-    async def find_by_id(self, mapping_id: CategoryMappingId) -> CategoryMapping | None:
+    async def get_by_id(self, mapping_id: CategoryMappingId) -> CategoryMapping | None:
         """Find mapping by ID."""
 
     @abstractmethod
     async def find_by_key(
-        self, key: str, language: str = "en"
-    ) -> CategoryMapping | None:
+        self, key: str, language: str, mapping_type: MappingType = MappingType.CATEGORY
+    ) -> list[CategoryMapping]:
         """Find mapping by exact key match."""
+
+    @abstractmethod
+    async def find_all(
+        self,
+        language: str | None = None,
+        mapping_type: MappingType | None = None,
+        is_active: bool | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[CategoryMapping]:
+        """Retrieve all category mappings with optional filters."""
+
+    @abstractmethod
+    async def delete(self, mapping_id: CategoryMappingId) -> None:
+        """Delete a category mapping by its ID."""
+
+    @abstractmethod
+    async def count_mappings(
+        self,
+        language: str | None = None,
+        mapping_type: MappingType | None = None,
+        is_active: bool | None = None,
+    ) -> int:
+        """Count category mappings with optional filters."""
 
     @abstractmethod
     async def find_by_text(
@@ -87,16 +111,20 @@ class CategoryMappingRepository(ABC):
         """Save a mapping candidate for review."""
 
     @abstractmethod
-    async def find_candidate_by_id(
-        self, candidate_id: CategoryMappingId
-    ) -> MappingCandidate | None:
+    async def get_candidate_by_id(self, candidate_id: Any) -> MappingCandidate | None:
         """Find candidate by ID."""
 
     @abstractmethod
-    async def get_pending_candidates(
-        self, limit: int = 50, offset: int = 0
-    ) -> list[MappingCandidate]:
-        """Get candidates pending review."""
+    async def find_candidates_for_review(self, limit: int = 100) -> list[Any]:
+        """Find mapping candidates that need review."""
+
+    @abstractmethod
+    async def approve_candidate(self, candidate_id: Any) -> None:
+        """Mark a candidate as approved."""
+
+    @abstractmethod
+    async def reject_candidate(self, candidate_id: Any) -> None:
+        """Mark a candidate as rejected."""
 
     @abstractmethod
     async def find_similar_candidates(

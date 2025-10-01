@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import structlog
-from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorDatabase
+from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ASCENDING, DESCENDING, TEXT
 from pymongo.errors import DuplicateKeyError
 
@@ -26,11 +26,12 @@ logger = structlog.get_logger(__name__)
 class MongoCategoryMappingRepository(CategoryMappingRepository):
     """MongoDB implementation of category mapping repository."""
 
-    def __init__(self, database: AsyncIOMotorDatabase) -> None:
+    def __init__(self, client: Any, database_name: str) -> None:
         """Initialize repository with database connection."""
-        self._db = database
-        self._mappings: AsyncIOMotorCollection = database.category_mappings
-        self._candidates: AsyncIOMotorCollection = database.mapping_candidates
+        self._client = client
+        self._db = client[database_name]
+        self._mappings: AsyncIOMotorCollection = self._db.category_mappings
+        self._candidates: AsyncIOMotorCollection = self._db.mapping_candidates
 
     async def initialize(self) -> None:
         """Initialize database indexes and collections."""
@@ -66,6 +67,81 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             logger.error(f"Failed to initialize category mapping repository: {e}")
             raise
 
+    # Abstract method implementations (required by base class)
+    async def save(self, mapping: CategoryMapping) -> CategoryMapping:
+        """Save or update a category mapping (abstract method implementation)."""
+        await self.save_mapping(mapping)
+        return mapping
+
+    async def find_all(
+        self,
+        language: str | None = None,
+        mapping_type: MappingType | None = None,
+        is_active: bool | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[CategoryMapping]:
+        """Find all mappings with filters (abstract method implementation)."""
+        try:
+            query = {}
+            if language:
+                query["language"] = language
+            if mapping_type:
+                query["mapping_type"] = mapping_type.value
+            if is_active is not None:
+                query["status"] = (
+                    MappingStatus.ACTIVE.value
+                    if is_active
+                    else MappingStatus.INACTIVE.value
+                )
+
+            cursor = (
+                self._mappings.find(query)
+                .sort("priority", DESCENDING)
+                .skip(offset)
+                .limit(limit)
+            )
+
+            mappings = []
+            async for doc in cursor:
+                mappings.append(CategoryMapping.from_dict(doc))
+
+            return mappings
+        except Exception as e:
+            logger.error(f"Failed to find all mappings: {e}")
+            raise
+
+    async def delete(self, mapping_id: CategoryMappingId) -> None:
+        """Delete mapping by ID (abstract method implementation)."""
+        result = await self.delete_mapping(mapping_id)
+        if not result:
+            logger.warning(f"No mapping found with ID {mapping_id}")
+
+    async def count_mappings(
+        self,
+        language: str | None = None,
+        mapping_type: MappingType | None = None,
+        is_active: bool | None = None,
+    ) -> int:
+        """Count mappings with filters (abstract method implementation)."""
+        try:
+            query = {}
+            if language:
+                query["language"] = language
+            if mapping_type:
+                query["mapping_type"] = mapping_type.value
+            if is_active is not None:
+                query["status"] = (
+                    MappingStatus.ACTIVE.value
+                    if is_active
+                    else MappingStatus.INACTIVE.value
+                )
+
+            return await self._mappings.count_documents(query)
+        except Exception as e:
+            logger.error(f"Failed to count mappings: {e}")
+            raise
+
     async def save_mapping(self, mapping: CategoryMapping) -> None:
         """Save or update a category mapping."""
         try:
@@ -85,7 +161,7 @@ class MongoCategoryMappingRepository(CategoryMappingRepository):
             logger.error(f"Failed to save mapping {mapping.id}: {e}")
             raise
 
-    async def find_by_id(self, mapping_id: CategoryMappingId) -> CategoryMapping | None:
+    async def get_by_id(self, mapping_id: CategoryMappingId) -> CategoryMapping | None:
         """Find mapping by ID."""
         try:
             doc = await self._mappings.find_one({"id": mapping_id.value})

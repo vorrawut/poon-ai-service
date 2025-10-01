@@ -33,6 +33,8 @@ class MappingResult:
         mapping_id: CategoryMappingId | None = None,
         fallback_used: bool = False,
         cached: bool = False,
+        method: str = "unknown",
+        error_message: str | None = None,
     ) -> None:
         self.category = category
         self.confidence = confidence
@@ -40,6 +42,8 @@ class MappingResult:
         self.mapping_id = mapping_id
         self.fallback_used = fallback_used
         self.cached = cached
+        self.method = method
+        self.error_message = error_message
 
     def is_successful(self) -> bool:
         """Check if mapping was successful."""

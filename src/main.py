@@ -76,7 +76,7 @@ class ServiceRegistry:
 
         self.category_mapping_repository = MongoCategoryMappingRepository(
             client=self.spending_repository._client,
-            database_name=settings.database_name,
+            database_name=settings.mongodb_database,
         )
         logger.info("✅ MongoDB category mapping repository initialized")
 

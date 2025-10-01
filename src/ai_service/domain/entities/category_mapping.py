@@ -65,6 +65,33 @@ class CategoryMappingId:
         return hash(self.value)
 
 
+@dataclass(frozen=True)
+class MappingCandidateId:
+    """Unique identifier for a mapping candidate."""
+
+    value: str = field(default_factory=lambda: str(uuid.uuid4()))
+
+    @classmethod
+    def generate(cls) -> MappingCandidateId:
+        """Generate a new candidate ID."""
+        return cls()
+
+    @classmethod
+    def from_string(cls, value: str) -> MappingCandidateId:
+        """Create ID from string value."""
+        if not value or not value.strip():
+            raise ValueError("MappingCandidateId must be a non-empty string")
+        return cls(value=value)
+
+    def __str__(self) -> str:
+        """Return string representation."""
+        return self.value
+
+    def __hash__(self) -> int:
+        """Make the ID hashable."""
+        return hash(self.value)
+
+
 @dataclass
 class CategoryMapping:
     """Entity representing a category mapping with metadata."""
